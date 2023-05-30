@@ -1,0 +1,1757 @@
+---
+title: "Aiptasia_FS_2022_clean"
+output: html_document
+date: "2023-01-21"
+---
+
+```{r}
+setwd("/Users/mariaingersoll/Desktop/BU_Research/Davies-Gilmore/Aip_FS_2022/Aiptasia_Fed_Starved")
+```
+
+Load in packages
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("DESeq2")
+BiocManager::install("arrayQualityMetrics")
+BiocManager::install("WGCNA")
+BiocManager::install("GO.db")
+BiocManager::install("impute")
+BiocManager::install("preprocessCore")
+BiocManager::install("flashClust")
+install.packages("RColorBrewer")
+install.packages("gplots")
+install.packages("pheatmap")
+install.packages("vegan")
+install.packages("ggplot2")
+install.packages("ggrepel")
+install.packages("VennDiagram")
+BiocManager::install("KOGMWU")
+install.packages("ggtext")
+install.packages("ggpubr")
+install.packages("reshape2")
+install.packages("tidyselect")
+
+
+library("DESeq2")                   
+library("arrayQualityMetrics")      
+library("dplyr")                  
+library("RColorBrewer")             
+library("gplots")                   
+library("tidyverse")               
+library("pheatmap")                
+library("vegan")                    
+library("ggplot2")                 
+library("ggrepel") 
+library("WGCNA")
+library("flashClust")
+library("VennDiagram")
+library("KOGMWU")
+library("ggtext")
+library("ggpubr")
+library("reshape2")
+library("tidyselect")
+library("devtools")
+```
+
+Open and inspect data
+- this is the host data first (has been filtered to remove symbionts)
+- I will be continuing the full analysis below on the host only data
+```{r}
+countData <- read.table("AiptasiaFS_2022_counts_2.txt")
+length(countData[,1])
+#26979
+head(countData)
+newColNames = c("A1F", "A1S", "A2F", "A2S", "A3F", "A3S", "A4F","A4S","A5F", "A5S", "S1F", "S1S", "S2F", "S2S", "S3F", "S3S", "S4F", "S4S", "S5F", "S5S")
+colnames(countData)=paste(newColNames)
+length(countData[,1])
+#26979
+head(countData)
+
+totalCounts=colSums(countData)
+barplot(totalCounts, col=c("mediumblue", "cornflowerblue", "mediumblue", "cornflowerblue", "mediumblue", "cornflowerblue", "mediumblue", "cornflowerblue", "mediumblue", "cornflowerblue", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral"), ylab="Raw Counts", xlab="Fed and Starved Apo and Sym Aiptasia")
+#save as rawcounts_220123 as 6x4 landscape
+
+min(totalCounts)
+#533348
+max(totalCounts)
+#1303847
+```
+
+Open, inspect, and get count data for symbiont counts from sym individuals
+```{r}
+countData_s <- read.table("Symbiont_FS_2022_counts.txt")
+head(countData_s)
+length(countData_s[,1])
+#4525
+newColNames_s = c("S1F", "S1S", "S2F", "S2S", "S3F", "S3S", "S4F", "S4S", "S5F", "S5S")
+colnames(countData_s)=paste(newColNames_s)
+length(countData_s[,1])
+#4525
+head(countData_s)
+
+totalCounts_s=colSums(countData_s)
+barplot(totalCounts_s, col=c("red", "lightcoral", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral"), ylab="Raw Counts", xlab="Symbiont Counts from Fed and Starved Aiptasia")
+#save as rawcounts_symbionts_080223 as 7x4 landscape
+
+min(totalCounts_s)
+#53761
+max(totalCounts_s)
+#71559
+```
+
+
+Now return to the whole data set of the host analysis
+Make treatment groups for a metadata file
+```{r}
+anemones=treat=c( "A1F", "A1S", "A2F", "A2S", "A3F", "A3S", "A4F", "A4S", "A5F", "A5S", "S1F", "S1S", "S2F", "S2S", "S3F", "S3S", "S4F", "S4S", "S5F", "S5S")
+a=data.frame(anemones)
+anemondata <-a
+anemondata
+
+treat=c( "AF", "AS", "AF", "AS", "AF", "AS", "AF", "AS", "AF", "AS", "SF", "SS", "SF", "SS", "SF", "SS", "SF", "SS", "SF", "SS")
+g=data.frame(treat)
+colData<- g
+colData
+
+symstat = c("A", "A", "A", "A", "A", "A", "A", "A", "A", "A", "S", "S", "S", "S", "S", "S", "S", "S", "S", "S")
+h=data.frame(symstat)
+symData<- h
+symData
+
+food=c( "F", "S", "F", "S", "F", "S", "F", "S", "F", "S", "F", "S", "F", "S", "F", "S", "F", "S", "F", "S")
+f=data.frame(food)
+foodData<- f
+foodData
+
+allData = cbind(anemondata, colData, symData, foodData)
+allData
+```
+
+Run preliminary DESeq and outlier analysis
+```{r}
+dds<-DESeqDataSetFromMatrix(countData=countData, colData=colData, design=~treat)
+dds<-DESeq(dds)
+
+vsd.ge=assay(vst(dds))
+rl=vst(dds)
+e=ExpressionSet(assay(rl), AnnotatedDataFrame(as.data.frame(colData(rl))))
+v = setwd("/Users/mariaingersoll/Desktop/BU_Research/Davies-Gilmore/Aip_FS_2022")
+arrayQualityMetrics(e,outdir=v,intgroup=c("treat"),force=T)
+```
+
+No outliers detected --> look at the index.html file to see the summary of the arrayqualitymetrics tests
+
+Visualize the results
+`results` extracts the results table from the DESeq analysis and the DESeqDataSet is used to generate the dispersion plot.
+
+Look at results for Apo comparison first
+```{r}
+head(dds)
+res_AS_AF<- results(dds, contrast = c("treat", "AS", "AF"))
+res_AS_AF
+```
+
+- The above code gives the log2 fold change (MLE): treat AS vs AF
+- this means that pos log2FC values indicate AS is upregulated compared to AF
+- The name provided in the second element (AF) is the baseline
+
+Do the same for the Sym
+```{r}
+res_SS_SF<- results(dds, contrast = c("treat", "SS", "SF"))
+res_SS_SF
+```
+
+Dispersion plot
+```{r}
+plotDispEsts(dds, main="Dispersion Uptake")
+```
+- Now we are going to retrieve the rlog data, which will give us better transformation when size factors vary across samples
+- regularized log transformation, transforms COUNT DATA to log2 scale to minimize differences between samples for rows with small counts
+```{r}
+rld <- rlogTransformation(dds, blind=TRUE)
+head(assay(rld))
+hist(assay(rld))
+```
+
+- The assay function allows you to access the matrix-like data, so that you can view it bc head(rld) gives you just a summary
+- The histogram above displays the frequency of each binned rld count value
+
+Raw Sample Comparison
+
+- Making a sample distance heatmap
+- as.matrix attempts to turn its argument into a matrix
+- dist computes and returns the distance matrix computed using the specified distance measure to compute distances between the rows of a data matrix (assay(rld))
+- Create a sample heatmap of the relatedness based on the count distance/difference between samples
+```{r}
+sampleDists <- as.matrix(dist(t(assay(rld))))
+
+heatmap.2(as.matrix(sampleDists), key=F, trace="none",
+          col=colorpanel(100, "black", "white"), ColSideColors=c("gray80", "purple", "gray80", "purple", "gray80", "purple", "gray80", "purple", "gray80", "purple", "gray20", "purple4", "gray20", "purple4", "gray20", "purple4", "gray20", "purple4", "gray20", "purple4"),RowSideColors = c("gray80", "purple", "gray80", "purple", "gray80", "purple", "gray80", "purple", "gray80", "purple", "gray20", "purple4", "gray20", "purple4", "gray20", "purple4", "gray20", "purple4", "gray20", "purple4"),
+          margin=c(10, 10))
+
+#saved as sampledisthm.pdf as landscape with 5x5 dimensions
+```
+
+Grouping really strongly by fed and starved treatment before sym state
+
+Now return to the results of dds comparing (average) AF and AS and average SF and SS again
+
+- How many gene counts of res_AS_AF have FDR < 10%?
+- Analyze the count differences between AF and AS
+- Do the same for the sym
+```{r}
+head(res_AS_AF)
+head(res_SS_SF)
+
+table(res_AS_AF$padj<0.1)
+# FALSE=12140 TRUE=5946
+summary(res_AS_AF)
+# out of 26979 with nonzero total read count
+# adjusted p-value < 0.1
+# LFC > 0 (up)       : 2874, 11%
+# LFC < 0 (down)     : 3072, 11%
+table(res_AS_AF$pvalue<0.01)
+# FALSE=22387 TRUE=4591
+
+table(res_SS_SF$padj<0.1)
+# FALSE=10054 TRUE=2278
+summary(res_SS_SF)
+# out of 26413 with nonzero total read count
+# adjusted p-value < 0.1
+# LFC > 0 (up)       : 951, 3.5%
+# LFC < 0 (down)     : 1327, 4.9%
+table(res_SS_SF$pvalue<0.01)
+# FALSE=24991 TRUE=1987
+
+plotMA(res_AS_AF, main="AS vs AF")
+#saved as plotma_apo as landscape 5x4
+plotMA(res_SS_SF, main="SS vs SF")
+#saved as plotma_sym as landscape 5x4
+```
+
+Now make a table of the differential expression values (log2fc) between AF, AS and SF, SS
+```{r}
+write.table(res_AS_AF, file="AS_AF_DE_22.txt", quote=F, sep="\t")
+head(read.delim("AS_AF_DE_22.txt"))
+res_AS_AF<- read.delim("AS_AF_DE_22.txt")
+head(res_AS_AF)
+res_AS_AF$lfc_apo <- res_AS_AF$log2FoldChange
+lfc_AS_AF <- res_AS_AF %>%
+  dplyr::select(lfc_apo)
+head(lfc_AS_AF)
+
+write.table(res_SS_SF, file="SS_SF_DE_22.txt", quote=F, sep="\t")
+head(read.delim("SS_SF_DE_22.txt"))
+res_SS_SF<-read.delim("SS_SF_DE_22.txt") 
+head(res_SS_SF)
+res_SS_SF$lfc_sym <- res_SS_SF$log2FoldChange
+lfc_SS_SF <- res_SS_SF %>%
+  dplyr::select(lfc_sym)
+head(lfc_SS_SF)
+```
+
+-Make a table with logfc in apo and lfc insym as columns, correlate two columns, is there a pos lin relationshop in lfc? 
+- tells us if theres a consistent affect of being starved
+```{r}
+lfc <- cbind(lfc_AS_AF, lfc_SS_SF)
+head(lfc)
+
+ggscatter(lfc, x = "lfc_apo", y = "lfc_sym", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "DEG LogFoldChange Aposymbiotic", ylab = "DEG LogFoldChange Symbiotic")
+
+#saved as correlation_as.pdf as landscape 5x4
+```
+
+- Get the p-values from your data file
+- Create val_AS_AF that is a table from res_AS_AF of just the pvalues and adjusted p-values (p-adj)
+- Then give the columns appropriate names
+- Do the same for sym
+```{r}
+val_AS_AF=cbind(res_AS_AF$pvalue, res_AS_AF$padj)
+head(val_AS_AF)
+colnames(val_AS_AF)=c("pval.AS_AF", "padj.AS_AF")
+length(val_AS_AF[,1])
+# 26979
+
+val_SS_SF=cbind(res_SS_SF$pvalue, res_SS_SF$padj)
+head(val_SS_SF)
+colnames(val_SS_SF)=c("pval.SS_SF", "padj.SS_SF")
+length(val_AS_AF[,1])
+# 26979
+```
+
+Return a logical vector in which both cases (pval and padj) are complete (no missing values)
+```{r}
+table(complete.cases(val_AS_AF))
+# FALSE=8893 TRUE=18086
+
+table(complete.cases(val_SS_SF))
+# FALSE=14647 TRUE=12332
+```
+
+- Make a table (that you can visualize via assay) of the rlogdata and pvals
+- Then make the column names for rld the same ones that were in colData$treat
+- And separate out into Apo and Sym
+```{r}
+rlog=rlogTransformation(dds, blind=TRUE) 
+rld=assay(rlog)
+head(rld)
+length(rld[,1])
+#26979
+
+rld_apo <- rld[,1:10]
+head(rld_apo)
+
+rld_sym <- rld[,11:20]
+head(rld_sym)
+```
+
+- Combine rlds with your tables of pval and padj values (with the respective conditions)
+```{r}
+rldpvals_apo=cbind(rld_apo,val_AS_AF)
+head(rldpvals_apo)
+dim(rldpvals_apo)
+table(complete.cases(rldpvals_apo))
+#FALSE  TRUE 
+# 8893 18086 
+write.csv(rldpvals_apo, "mingers_AS_AF_RLDandPVALS_22.csv", quote=F)
+
+rldpvals_sym=cbind(rld_sym,val_SS_SF)
+head(rldpvals_sym)
+dim(rldpvals_sym)
+table(complete.cases(rldpvals_sym))
+write.csv(rldpvals_sym, "mingers_SS_SF_RLDandPVALS_22.csv", quote=F)
+```
+
+Read back in the csv files you just made to prep for PCA
+```{r}
+rldpvals_apo <- read.csv(file="mingers_AS_AF_RLDandPVALS_22.csv", row.names=1)
+head(rldpvals_apo)
+rld_apo <- rldpvals_apo[,1:10]
+head(rld_apo)
+
+rldpvals_sym <- read.csv(file="mingers_SS_SF_RLDandPVALS_22.csv", row.names=1)
+head(rldpvals_sym)
+rld_sym <- rldpvals_sym[1:10]
+head(rld_sym)
+```
+
+Now going to perform PCA on the data to visualize overall effect of experimental covariates and batch effects
+- t transposes the rld table and makes all the rows columns, and the columns rows. So here the isoform names that were rownames are now the column names. 
+- prcomp performs a pca on given data matrix and returns results as an object of class prcomp
+- sdev is the standard deviations of the principal components
+- Using the sdev, calculate the proportion that each PC corresponds to the variance
+- Then round PC1 and PC2 (times 100, to 1 sigfig)
+- x from prcomp seems like it's the coordinates of each treatment in the PCA
+- turn pca$x into a dataframe
+```{r}
+#for ALL
+rld_t=t(rld)
+colnames(rld_t)
+head(rld_t)
+pca <- prcomp(rld_t,center = TRUE)
+head(pca)
+li <- pca$sdev^2 / sum(pca$sdev^2)
+pc1v <- round(li[1] * 100, 1)
+pc2v <- round(li[2] * 100, 1)
+pca_s <- as.data.frame(pca$x)
+head(pca_s)
+pca_s <- pca_s[,c(1,2)]
+
+pca_s$Samples = row.names(pca_s)
+pca_s$anemones = c("A1F", "A1S", "A2F", "A2S", "A3F", "A3S", "A4F", "A4S", "A5F", "A5S", "S1F", "S1S", "S2F", "S2S", "S3F", "S3S", "S4F", "S4S", "S5F", "S5S")
+pca_s$treat=allData$treat
+pca_s$Sym_Status=allData$symstat
+pca_s$Nutrition_Status=allData$food
+head(pca_s)
+
+```
+
+Creating your PCA plots
+```{r}
+food_color= c("gray50","purple")
+sym_shape = c(1,19)
+
+# saved as landscape with 6x4 as pca_012223.pdf
+pca_plot <- ggplot(pca_s, aes(PC1, PC2, color = Nutrition_Status, pch = Sym_Status, group=treat)) +
+  geom_point(size=3) +
+  #  geom_text_repel(aes(label=Samples)) +
+  scale_colour_manual(values=food_color)+
+  scale_shape_manual(values=sym_shape) +
+  stat_ellipse()+
+  labs(color="Feeding State", pch="Symbiosis State")+
+  xlab(paste0("PC1: ",pc1v,"% variance")) +
+  ylab(paste0("PC2: ",pc2v,"% variance")) +
+  theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0,
+        legend.key.size=unit(10,"point"))
+pca_plot
+
+install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
+library(pairwiseAdonis)
+
+# Effect of Nutrition
+adonis2(pca$x ~ Nutrition_Status, data = pca_s, method='eu', na.rm = TRUE)
+# Pr(>F) = 0.001
+
+# Effect of Sym status
+adonis2(pca$x ~ Sym_Status, data = pca_s, method='eu', na.rm = TRUE)
+# Pr(>F)=0.017
+
+# Effect of treatment
+adonis2(pca$x ~ treat, data = pca_s, method='eu', na.rm = TRUE)
+# Pr(>F)=0.001
+
+# Interaction between nutrition and sym
+adonis2(pca$x ~ Nutrition_Status*Sym_Status, data = pca_s, method='eu', na.rm = TRUE)
+# Nutrition_Status:Sym_Status Pr(>F>=0.043)
+
+# Pairwise effect of treatment (to get individual pairwise comparisons)
+pairwise.adonis2(pca$x ~ treat, data = pca_s, method='eu', na.rm = TRUE)
+# AF_vs_AS Pr(>F)=0.008
+# AF_vs_SF Pr(>F)=0.009
+# AS_vs_SS Pr(>F)=0.007
+# SF_vs_SS Pr(>F)=0.006
+```
+
+Plasticity using Colleen's code: https://github.com/seabove7/RandomFun/blob/main/Plasticity_function/PlasticityFun_example.R
+
+Source the function then run plast function on your data
+- po starved vs apo fed and sym starved vs sym fed with the fed as the control
+```{r}
+source("https://raw.githubusercontent.com/seabove7/RandomFun/main/Plasticity_function/PCAplast_function.R")
+
+rld_plast <- rld
+head(rld_plast)
+rld_plast_t <- t(rld_plast)
+pca_df_plast <- prcomp(rld_plast_t, center=TRUE)
+head(pca_df_plast)
+
+head(allData)
+allData_2 <- remove_rownames(allData)
+allData_2 <- column_to_rownames(allData_2, var="anemones")
+head(allData_2)
+
+write.csv(allData_2, file="allData_2.csv", quote=F, row.names=TRUE)
+allData_2 <- read.csv("allData_2.csv")
+head(allData_2)
+
+head(pca_df_plast)
+
+plast_out_all <- PCAplast(pca = pca_df_plast, # the PCA dataframe containing the PCA eigenvalues
+         data = allData_2, # the condition/treatment data corresponding to samples
+         sample_ID = "X", # the name of column that provide unique ID per sample (if blank, will pull rownames for this)
+        num_pca =  2, # the number of PCAs to include in analysis (default is 'all', but you can specify another number with a minimum of 2 PCAs)
+         control_lvl = "F", # control level of the treatment. If blank, a control mean per control level is assumed
+         group = "symstat", # the grouping column (i.e., colony). If blank, will assume control level grouping only!
+         control_col = "food") # what the 'treatment' column is called
+
+plast_out_all
+```
+
+Now visualize the dist values
+```{r}
+plast_col = c("white", "purple")
+
+plast_plot <- ggplot(data = plast_out_all, aes(x = treat, y = dist)) + 
+  geom_point(shape=21, color="purple", stroke=1, position = position_jitter(width = 0.1),aes(fill=symstat)) +
+  stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1), geom = "errorbar", width = 0, colour = "black") +
+  stat_summary(fun = "mean", size = 0.8, shape=21, colour = "black", fill="gray") +
+  scale_fill_manual(values=plast_col)+
+  ylim(0,60)+
+  ylab("Plasticity")+
+  xlab("Treatment")+
+  labs(fill="Symbiosis State")+
+  theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0,
+        legend.key.size=unit(10,"point"))
+plast_plot
+#saved as plasticity_012223 as landscape with 6x4
+
+plast_aov <- aov(dist~symstat, data=plast_out_all)
+summary(plast_aov)
+
+#            Df Sum Sq Mean Sq F value   Pr(>F)    
+#symstat      1 1096.1  1096.1    78.8 2.05e-05 ***
+#Residuals    8  111.3    13.9                     
+```
+
+Read in your results files
+```{r}
+res_apo = read.table("AS_AF_DE_22.txt")
+head(res_apo)
+res_apo = res_apo %>%
+  tibble::rownames_to_column(var = "gene_ID")
+head(res_apo)
+nrow(res_apo)
+#26979
+
+apo_S_up = filter(res_apo, log2FoldChange > 0, preserve = TRUE)
+apo_S_down = filter(res_apo, log2FoldChange < 0, preserve = TRUE)
+
+res_sym = read.table("SS_SF_DE_22.txt")
+head(res_sym)
+res_sym = res_sym %>%
+  tibble::rownames_to_column(var = "gene_ID")
+head(res_sym)
+nrow(res_sym)
+#26979
+
+sym_S_up = filter(res_sym, log2FoldChange > 0, preserve = TRUE)
+sym_S_down = filter(res_sym, log2FoldChange < 0, preserve = TRUE)
+```
+
+Create a term go_input_apo and a term go_input_sym that has the -logpval as a neg number if the l2fc is < 0 and a pos number if the l2fc is > 0
+- These terms will go into the go analysis
+- These terms are including na.omit so anything without a padj value will be removed
+```{r}
+go_input_apo = res_apo %>%
+  mutate(mutated_p = -log(pvalue)) %>%
+  mutate(mutated_p_updown = ifelse(log2FoldChange < 0, mutated_p*-1, mutated_p*1)) %>%
+  na.omit() %>%
+  select(gene_ID, mutated_p_updown)
+nrow(go_input_apo)
+#18086
+head(go_input_apo)
+colnames(go_input_apo) <- c("gene", "pval")
+head(go_input_apo)
+write.csv(go_input_apo, file="apo_GO_22.csv", quote=F, row.names=FALSE)
+
+go_input_sym = res_sym %>%
+  mutate(mutated_p = -log(pvalue)) %>%
+  mutate(mutated_p_updown = ifelse(log2FoldChange < 0, mutated_p*-1, mutated_p*1)) %>%
+  na.omit() %>%
+  select(gene_ID, mutated_p_updown)
+nrow(go_input_sym)
+#12332
+head(go_input_sym)
+colnames(go_input_sym) <- c("gene", "pval")
+head(go_input_sym)
+write.csv(go_input_sym, file="sym_GO_22.csv", quote=F, row.names=FALSE)
+```
+
+GO Analysis
+- read back in your go files, these will go into the dendrogram analysis
+- make sure your files are in unix first, so open and save them in BBEdit, and rename them with the proper "isogroup" instead of aipgene
+- load all the necessary files into your working directory
+
+- APO FIRST
+```{r}
+    # cc
+input="apo_GO_22.csv"
+goAnnotations="aiptasia_iso2go.tab"
+goDatabase="go.obo"
+goDivision="CC"
+source("gomwu.functions.R")
+
+gomwuStats(input, goDatabase, goAnnotations, goDivision,
+           perlPath="perl",
+           largest=0.1,
+           smallest=5,
+           clusterCutHeight=0.25)
+
+#208 terms at 10% FDR
+
+resultsCC=gomwuPlot(input,goAnnotations,goDivision,
+                  absValue=1,
+                  level1=0.1,
+                  level2=0.05,
+                  level3=0.01,
+                  txtsize=1.5,
+                  treeHeight=0.5,
+)
+#saved as CCapo_012223.pdf as portrait with 30x10 dimensions
+resultsCC
+
+# BP
+input="apo_GO_22.csv"
+goAnnotations="aiptasia_iso2go.tab"
+goDatabase="go.obo"
+goDivision="BP"
+source("gomwu.functions.R")
+
+gomwuStats(input, goDatabase, goAnnotations, goDivision,
+           perlPath="perl",
+           largest=0.1,
+           smallest=5,
+           clusterCutHeight=0.25)
+#795
+
+resultsBP=gomwuPlot(input,goAnnotations,goDivision,
+                  absValue=1,
+                  level1=0.1,
+                  level2=0.05,
+                  level3=0.01,
+                  txtsize=1.5,
+                  treeHeight=0.5,
+)
+#saved as BPapo_012223 as portrait with 100x10 dimensions
+
+resultsBP
+
+  # MF
+input="apo_GO_22.csv"
+goAnnotations="aiptasia_iso2go.tab"
+goDatabase="go.obo"
+goDivision="MF"
+source("gomwu.functions.R")
+
+gomwuStats(input, goDatabase, goAnnotations, goDivision,
+           perlPath="perl",
+           largest=0.1,
+           smallest=5,
+           clusterCutHeight=0.25)
+#276
+
+resultsMF=gomwuPlot(input,goAnnotations,goDivision,
+                  absValue=1,
+                  level1=0.1,
+                  level2=0.05,
+                  level3=0.01,
+                  txtsize=1.5,
+                  treeHeight=0.5,
+)
+#saved as MFapo_012223.pdf as portrait with 45x10 dimenstions
+resultsMF
+```
+
+- NOW SYM
+```{r}
+    # cc
+input="sym_GO_22.csv"
+goAnnotations="aiptasia_iso2go.tab"
+goDatabase="go.obo"
+goDivision="CC"
+source("gomwu.functions.R")
+
+gomwuStats(input, goDatabase, goAnnotations, goDivision,
+           perlPath="perl",
+           largest=0.1,
+           smallest=5,
+           clusterCutHeight=0.25)
+#151
+
+resultsCC=gomwuPlot(input,goAnnotations,goDivision,
+                  absValue=1,
+                  level1=0.1,
+                  level2=0.05,
+                  level3=0.01,
+                  txtsize=1.5,
+                  treeHeight=0.5,
+)
+#saved as CCsym_012223.pdf as portrait with 30x10 dimensions
+resultsCC
+
+ # bp
+input="sym_GO_22.csv"
+goAnnotations="aiptasia_iso2go.tab"
+goDatabase="go.obo"
+goDivision="BP"
+source("gomwu.functions.R")
+
+gomwuStats(input, goDatabase, goAnnotations, goDivision,
+           perlPath="perl",
+           largest=0.1,
+           smallest=5,
+           clusterCutHeight=0.25)
+#483
+
+resultsBP=gomwuPlot(input,goAnnotations,goDivision,
+                  absValue=1,
+                  level1=0.1,
+                  level2=0.05,
+                  level3=0.01,
+                  txtsize=1.5,
+                  treeHeight=0.5,
+)
+#saved as BPsym_012223.pdf as portrait with 75x10 dimensions
+resultsBP
+
+# MF
+input="sym_GO_22.csv"
+goAnnotations="aiptasia_iso2go.tab"
+goDatabase="go.obo"
+goDivision="MF"
+source("gomwu.functions.R")
+
+gomwuStats(input, goDatabase, goAnnotations, goDivision,
+           perlPath="perl",
+           largest=0.1,
+           smallest=5,
+           clusterCutHeight=0.25)
+#173
+
+resultsMF=gomwuPlot(input,goAnnotations,goDivision,
+                  absValue=1,
+                  level1=0.1,
+                  level2=0.05,
+                  level3=0.01,
+                  txtsize=1.5,
+                  treeHeight=0.5,
+)
+#saved as MFsym_012223 as portrait with dimensions 25x10
+resultsMF
+```
+
+Next we will investigate specific DEGs from enriched (over/underrepresented) GO terms of interest
+- First make necessary files of DEGs from sym and apo
+```{r}
+iso2go = read.table("aiptasia_iso2go.tab", sep="\t")
+colnames(iso2go) <- c("gene_ID", "GO.terms")
+head(iso2go)
+
+newnames = c("gene_ID", "accession", "description" )
+iso2gene = read.delim("aiptasia_iso2gene.txt", sep="\t", header=TRUE)
+colnames(iso2gene) <- newnames
+
+head(iso2gene)
+gene = iso2gene %>%
+       mutate(gene_symbol = gsub(".* GN=", "", description)) %>%
+       mutate(gene_symbol = gsub(" .*", "", gene_symbol)) %>%
+  mutate(gene_symbol = toupper(gene_symbol))
+head(gene)
+```
+
+Get the file with the rlog fold change data, make sure that the gene_ID has isogroup and not AIPGENE. For apo, this file is "mingers_AS_AF_RLDandPVALS_22.csv" and for sym, this file is "mingers_SS_SF_RLDandPVALS_22.csv"
+```{r}
+apo_DE = read.csv("mingers_AS_AF_RLDandPVALS_22.csv")
+head(apo_DE)
+apo_DE= apo_DE %>%
+  mutate(gene_ID = gsub("AIPGENE*", "isogroup", X)) %>%
+  dplyr::select(-X) %>%
+  relocate(gene_ID, .before=A1F) 
+apo_DE_10 = subset(apo_DE, padj.AS_AF < 0.1) 
+  #na.omit() 
+rlog_apo_10 = apo_DE_10[,1:11]
+nrow(rlog_apo_10)
+# 5946
+head(rlog_apo_10)
+
+sym_DE = read.csv("mingers_SS_SF_RLDandPVALS_22.csv")
+head(sym_DE)
+sym_DE= sym_DE %>%
+  mutate(gene_ID = gsub("AIPGENE*", "isogroup", X)) %>%
+  dplyr::select(-X) %>%
+  relocate(gene_ID, .before=S1F) 
+nrow(sym_DE)
+sym_DE_10 = subset(sym_DE, padj.SS_SF < 0.1)
+nrow(sym_DE_10)
+#2278
+rlog_sym_10 = sym_DE_10[,1:11]
+head(rlog_sym_10)
+```
+
+Now filter your GO BP files for the GO terms of interest
+- We are going to start with the overrepresented GO terms of BP that fall under NF-kB response
+-Apo first
+```{r}
+bp_apo = read.csv("BP_apo_GO_22.csv", sep="\t")
+head(bp_apo)
+colnames(bp_apo)[4]="gene_ID"
+
+nfkb_apo = bp_apo %>%
+  filter(str_detect(term, "GO:0043123|GO:0043122|GO:0051092|GO:0007249|GO:0042345|GO:0007250|GO:1901222")) %>% # select desired GO terms (nfkb)
+  left_join(rlog_apo_10) %>% 
+  drop_na() %>%
+  distinct(gene_ID, .keep_all = TRUE) %>%
+  left_join(gene) %>%
+  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
+  column_to_rownames(var = "gene_symbol") %>%
+  dplyr::select(-name, -term, -lev, -value, -description, -gene_ID, -accession) %>%
+  dplyr::select(sort(tidyselect::peek_vars()))
+head(nfkb_apo)
+nrow(nfkb_apo)
+#44
+
+graypurp <- c("gray50", "purple", "gray50", "purple", "gray50", "purple", "gray50", "purple", "gray50", "purple")
+
+nfkb_apo_means = apply(nfkb_apo, 1, mean)
+explc_nfkb_apo = nfkb_apo-nfkb_apo_means
+
+callback = function(hc, mat){
+    sv = svd(t(mat))$v[,1]
+    dend = reorder(as.dendrogram(hc), wts = sv)
+    as.hclust(dend)
+}
+
+pheatmap(as.matrix(explc_nfkb_apo),
+         color=rev(colorRampPalette(brewer.pal(n=11, name="RdBu"))(20)),
+         cluster_rows = T, show_rownames = T, fontsize_row=8, fontsize_col=10, treeheight_row = 10, treeheight_col = 10,
+         cluster_cols = T, show_colnames = T, clustering_callback=callback, angle_col= "315", cellheight = 8, cellwidth = 14,
+         breaks=c(seq(from=-1,to=1,by=0.1)),
+         scale="none",
+         legend=T)
+#saved as pheatmap_nfkb_apo_012223.pdf as portrait with 6x4 dimensions
+```
+
+- let's do the same thing but in sym now with just the NF-kB terms
+```{r}
+bp_sym = read.csv("BP_sym_GO_22.csv", sep="\t")
+head(bp_sym)
+colnames(bp_sym)[4]="gene_ID"
+
+nfkb_sym = bp_sym %>%
+  filter(str_detect(term, "GO:0043122|GO:0007250|GO:1901222|GO:0042345")) %>%
+  left_join(rlog_sym_10) %>%
+  drop_na() %>%
+  distinct(gene_ID, .keep_all = TRUE) %>%
+  left_join(gene) %>%
+  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
+  column_to_rownames(var = "gene_symbol") %>%
+  dplyr::select(-name, -term, -lev, -value, -description, -gene_ID, -accession) %>%
+  dplyr::select(sort(tidyselect::peek_vars()))
+
+head(nfkb_sym)
+nrow(nfkb_sym)
+#13
+
+nfkb_sym_means = apply(nfkb_sym, 1, mean)
+explc_nfkb_sym = nfkb_sym-nfkb_sym_means
+
+callback = function(hc, mat){
+    sv = svd(t(mat))$v[,2]
+    dend = reorder(as.dendrogram(hc), wts = sv)
+    as.hclust(dend)
+}
+
+pheatmap(as.matrix(explc_nfkb_sym),
+         color=rev(colorRampPalette(brewer.pal(n=11, name="RdBu"))(20)),
+         cluster_rows = T, show_rownames = T, fontsize_row=8, fontsize_col=10, treeheight_row = 10, treeheight_col = 10,
+         cluster_cols = T, show_colnames = T, clustering_callback=callback, angle_col= "315", cellheight = 8, cellwidth = 14,
+         breaks=c(seq(from=-1,to=1,by=0.1)),
+         scale="none",
+         legend=F)
+#saved as pheatmap_nfkb_sym_012223.pdf as portrait with 6x4 dimensions
+```
+
+Now let's look at the underrepresented ROS stress response GO terms (BP) in Apo then in Sym
+```{r}
+ros_down_apo = bp_apo %>%
+  filter(str_detect(term, "GO:0000303|GO:0019430|GO:0071451|GO:0072593")) %>%
+  left_join(rlog_apo_10) %>%
+  drop_na() %>%
+  distinct(gene_ID, .keep_all = TRUE) %>%
+  left_join(gene) %>%
+  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
+  column_to_rownames(var = "gene_symbol") %>%
+  dplyr::select(-name, -term, -lev, -value, -description, -gene_ID, -accession) %>%
+  dplyr::select(sort(tidyselect::peek_vars()))
+head(ros_down_apo)
+nrow(ros_down_apo)
+#24
+
+rosdown_apo_means = apply(ros_down_apo, 1, mean)
+explc_rosd_apo = ros_down_apo-rosdown_apo_means
+
+callback = function(hc, mat){
+    sv = svd(t(mat))$v[,3]
+    dend = reorder(as.dendrogram(hc), wts = sv)
+    as.hclust(dend)
+}
+
+pheatmap(as.matrix(explc_rosd_apo),
+         color=rev(colorRampPalette(brewer.pal(n=11, name="RdBu"))(20)),
+         cluster_rows = T, show_rownames = T, fontsize_row=8, fontsize_col=10, treeheight_row = 10, treeheight_col = 10,
+         cluster_cols = T, show_colnames = T, clustering_callback=callback, angle_col= "315", cellheight = 8, cellwidth = 14,
+         breaks=c(seq(from=-1,to=1,by=0.1)),
+         scale="none",
+         legend=T)
+#saved as pheatmap_ros_apo_012223.pdf as portrait with 6x4 dimensions
+```
+
+
+```{r}
+ros_down_sym = bp_sym %>%
+  filter(str_detect(term, "GO:0072593|GO:0006801|GO:0000303|GO:0019430|GO:0071451")) %>%
+  left_join(rlog_sym_10) %>%
+  drop_na() %>%
+  distinct(gene_ID, .keep_all = TRUE) %>%
+  left_join(gene) %>%
+  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
+  column_to_rownames(var = "gene_symbol") %>%
+  dplyr::select(-name, -term, -lev, -value, -description, -gene_ID, -accession) %>%
+  dplyr::select(sort(tidyselect::peek_vars()))
+head(ros_down_sym)
+nrow(ros_down_sym)
+#6
+
+rosdown_sym_means = apply(ros_down_sym, 1, mean)
+explc_rosd_sym = ros_down_sym-rosdown_sym_means
+
+callback = function(hc, mat){
+    sv = svd(t(mat))$v[,3]
+    dend = reorder(as.dendrogram(hc), wts = sv)
+    as.hclust(dend)
+}
+
+pheatmap(as.matrix(explc_rosd_sym),
+         color=rev(colorRampPalette(brewer.pal(n=11, name="RdBu"))(20)),
+         cluster_rows = T, show_rownames = T, fontsize_row=8, fontsize_col=10, treeheight_row = 10, treeheight_col = 10,
+         cluster_cols = T, show_colnames = T, clustering_callback=callback, angle_col= "315", cellheight = 8, cellwidth = 14,
+         breaks=c(seq(from=-1,to=1,by=0.1)),
+         scale="none",
+         legend=F)
+#saved as pheatmap_ros_sym_012223.pdf as portrait with 5x4 dimensions
+```
+
+Venn Diagrams
+```{r}
+res_AS_AF<- read.delim("AS_AF_DE_22.txt")
+head(res_AS_AF)
+res_AS_AF$lfc_apo <- res_AS_AF$log2FoldChange
+head(res_AS_AF)
+
+res_SS_SF<- read.delim("SS_SF_DE_22.txt")
+head(res_SS_SF)
+res_SS_SF$lfc_sym <- res_SS_SF$log2FoldChange
+head(res_SS_SF)
+
+# look at ALL DEGs
+apo_DEGs=row.names(res_AS_AF[res_AS_AF$padj<0.10 & !is.na(res_AS_AF$padj),])
+length(apo_DEGs)
+# 5946
+
+sym_DEGs=row.names(res_SS_SF[res_SS_SF$padj<0.10 & !is.na(res_SS_SF$padj),])
+length(sym_DEGs)
+# 2278
+
+candidates_all=list("Apo"=apo_DEGs, "Sym"=sym_DEGs)
+head(candidates_all)
+prettyvenn=venn.diagram(
+  x = candidates_all,
+  category.names=c("Apo (5946)", "Sym (2278)"),
+  col=c("purple3","purple3"),
+  lwd=c(3,3),
+  filename=NULL,
+  #main = "DEGs Under Starvation",
+  main.cex = 2,
+  main.fontface = "bold",
+  main.fontfamily = "sans",
+  #col = "transparent",
+  fill = c("white","purple"),
+  alpha = 0.3,
+  cex = 2,
+  fontfamily = "sans",
+  fontface = "bold",
+  cat.default.pos = "text",
+  cat.col = c("black", "black"),
+  cat.cex = 1.5,
+  cat.fontfamily = "sans",
+  cat.dist = c(0.2, 0.14),
+  cat.pos = c(-14.5, -3)
+)
+
+grid.draw(prettyvenn)
+
+#saved as venn_012323.pdf as landscape with 7x7 dimensions
+```
+
+Now Going to do KOG (eukaryotic orthologous groups) between Hanny's Oculina data, Josh's Nv data, and my aiptasia data
+
+- Hanny's data is on her github here: https://github.com/hrivera28/oculina_heterotrophy
+And the paper she does KOG in (between apo/sym oculina, aiptasia, and salamanders) is here: https://www.nature.com/articles/s41598-021-00697-6 and the data for that is also on her github
+
+- Nv transcriptome/protein models used to generate KOG file came from here: https://figshare.com/articles/dataset/Nematostella_vectensis_transcriptome_and_gene_models_v2_0/807696
+
+Example instructions for changing the eggnog output file to gene2kog file on the cluster (terminal):
+```{r, eval=FALSE}
+# change the xlsx output file from eggnog to a .txt file and load the .txt file into your working directory
+# select just the columns with the gene name and the single letter cog_category, make sure the $3 is indicating the correct column
+awk -F "\t" 'BEGIN {OFS="\t" }{print $1,$3 }' nve.emapper.annotations.txt | grep -Ev "[,#S]" >nve_gene2kogClass1.tab
+
+# you want to account for the fact that some genes may be mapping to multiple cog categories, so you want to repeat each gene for each category, but you want to skip the first line bc it's the column names
+awk 'BEGIN{OFS="\t"} NR>1 {split($2,a,""); for (i in a){$2=a[i];print}}' nve_gene2kogClass1.tab > nve_gene2kogClass2
+
+# add line 1 with the column names back in
+sed -i -e '1iquery COG_category\' nve_gene2kogClass2
+
+# map to kog_classes file for final product
+awk 'BEGIN {FS=OFS="\t"} NR==FNR {a[$1] = $2;next} {print $1,a[$2]}' kog_classes.txt nve_gene2kogClass2 > nematostella_gene2kogClass_final.tab
+```
+
+Read in your KOG annotation files
+Make sure aipgene and has been switched to isogroup
+Get rid of empty terms
+
+You need to map your KOG terms (single letter) in the eggnog xlsx output file to the KOG class following the protocol here:https://github.com/z0on/emapper_to_GOMWU_KOGMWU
+
+I use here the Aip and Nv KOG files I generated, but I will be using the Oc KOG file that Hanny generated
+
+Reformated all my kog tables to look nice in the script "odds_ends.R"
+```{r}
+aip_kog_2 <- read.delim("aip_kog_mvi_final.txt", header=TRUE)
+head(aip_kog_2)
+nrow(aip_kog_2)
+#15345
+#select only the isogroups annotated with a KOG term
+aip_kog_2%>%filter(term!="")->aip_kog_2
+nrow(aip_kog_2)
+#13897
+
+oc_kog<-read.table("oculina_uniq_kog.tab.txt", header=TRUE)
+head(oc_kog)
+nrow(oc_kog)
+#5007
+oc_kog%>%filter(term!="")->oc_kog
+nrow(oc_kog)
+#4671
+
+nv_kog <- read.delim("nv_kog_mvi_final.txt", header=TRUE)
+head(nv_kog)
+nrow(nv_kog)
+# 14606
+nv_kog%>%filter(term!="")->nv_kog
+#nv_kog%>%filter(term!="-")->nv_kog
+nrow(nv_kog)
+# 13638
+```
+
+- Oculina file loaded in here is the signed P values in which pos value is upregulated in unfed (starved), this is from Hanny's heterotrophy experiment (github linked above)
+- Nematostella file loaded here is from Joshua Aguirre's starvation experiment
+- Make sure you've changed the "isogroup" to "NVE" in your Nv_SF_signedP file
+
+```{r}
+ocu_sgp<-read.csv("ocu_ufct_signedP.csv", header=TRUE)
+head(ocu_sgp)
+
+aips_sgp <- read.csv("sym_GO_22.csv", header=TRUE)
+head(aips_sgp)
+z <- c("genes","signedlogP")
+colnames(aips_sgp)=paste(z)
+head(aips_sgp)
+
+aipa_sgp <- read.csv("apo_GO_22.csv", header=TRUE)
+head(aipa_sgp)
+z <- c("genes","signedlogP")
+colnames(aipa_sgp)=paste(z)
+head(aipa_sgp)
+
+nv_sgp <- read.csv("Nv_SF_signedP.csv", header=TRUE)
+head(nv_sgp)
+colnames(nv_sgp)=paste(z)
+head(nv_sgp)
+```
+
+Run KOGmwu analysis
+```{r}
+aip_s_sgp_res<-kog.mwu(aips_sgp, aip_kog_2)
+aip_apo_sgp_res<-kog.mwu(aipa_sgp, aip_kog_2)
+oc_sgp_res<-kog.mwu(ocu_sgp, oc_kog)
+nv_sgp_res<-kog.mwu(nv_sgp, nv_kog)
+```
+
+Now combine the apo, sym, oc, and nv
+```{r}
+ktable_aips_aipa_oc_nv_sgp=makeDeltaRanksTable(list("Sym Oculina arbuscula"=oc_sgp_res, "Sym Aiptasia"=aip_s_sgp_res, "Apo Aiptasia"=aip_apo_sgp_res, "Nematostella vectensis" =nv_sgp_res))
+head(ktable_aips_aipa_oc_nv_sgp)
+nrow(ktable_aips_aipa_oc_nv_sgp)
+#23
+
+# save this one for the manuscript, landscape 7 x 5 as KOG_012323
+pheatmap(as.matrix(ktable_aips_aipa_oc_nv_sgp),
+         color=rev(colorRampPalette(brewer.pal(n=11, name="RdBu"))(160)),
+         cluster_rows = T, show_rownames = T, fontsize_row=10, treeheight_row = 5,
+         cluster_cols = T, show_colnames = T, fontsize_col=10, angle_col= "315",
+         breaks=c(seq(from=-800,to=800,by=10)),
+         scale="none",
+         legend=T)
+```
+
+Now compare the GO delta ranks
+Read in the MWU_BP files generated from BP GO analysis for apo and sym aiptasia fed/starve
+And the sym fed/starve oculina MWU_BP file from Hanny (called "MWU_BP_heats_ufct_signedP.csv")
+The nem file is from Josh
+```{r}
+aip_apo_goBP=read.table("MWU_BP_apo_GO_22.csv",header=T, sep = " ")
+aip_sym_goBP=read.table("MWU_BP_sym_GO_22.csv",header=T, sep = " ")
+oc_goBP=read.table("MWU_BP_heats_ufct_signedP.csv",header=T, sep = " ")
+nv_goBP=read.table("MWU_BP_Nv_starved_GO.csv",header=T, sep = " ")
+```
+
+Make all your pairwise comparisons
+```{r}
+#### sym aip vs apo aip
+goods_as_aa=intersect(aip_sym_goBP$name, aip_apo_goBP$name)
+aip_sym_goBP_1 <- aip_sym_goBP[aip_sym_goBP$name %in% goods_as_aa,]
+aip_apo_goBP_1 <- aip_apo_goBP[aip_apo_goBP$name %in% goods_as_aa,]
+# all overlapping GO terms
+ress_as_aa <- merge(aip_sym_goBP_1, aip_apo_goBP_1, by="name")
+# GO terms highly sig in both datasets
+sigs_as_aa=ress_as_aa[ress_as_aa$p.adj.x<=0.1 & ress_as_aa$p.adj.y<=0.1,]
+dim(sigs_as_aa)
+# 394 GO terms that are significant and shared between both by name
+head(sigs_as_aa)
+write.table(sigs_as_aa, file="sigs_as_aa_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
+sigs_as_aa <- read.table("sigs_as_aa_GO_name.txt", header=T, sep="\t")
+head(sigs_as_aa)
+
+#### sym aip to sym oc
+goods_as_oc=intersect(aip_sym_goBP$name, oc_goBP$name)
+aip_sym_goBP_2 <- aip_sym_goBP[aip_sym_goBP$name %in% goods_as_oc,]
+oc_goBP_2 <- oc_goBP[oc_goBP$name %in% goods_as_oc,]
+ress_as_oc <- merge(aip_sym_goBP_2, oc_goBP_2, by="name")
+sigs_as_oc=ress_as_oc[ress_as_oc$p.adj.x<=0.1 & ress_as_oc$p.adj.y<=0.1,]
+dim(sigs_as_oc)
+# 4
+sigs_as_oc
+write.table(sigs_as_oc, file="sigs_as_oc_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
+sigs_as_oc <- read.table("sigs_as_oc_GO_name.txt", header=T, sep="\t")
+head(sigs_as_oc)
+
+#### apo aip to sym oc
+goods_aa_oc=intersect(aip_apo_goBP$name, oc_goBP$name)
+aip_apo_goBP_3 <- aip_apo_goBP[aip_apo_goBP$name %in% goods_aa_oc,]
+oc_goBP_3 <- oc_goBP[oc_goBP$name %in% goods_aa_oc,]
+ress_aa_oc <- merge(aip_apo_goBP_3, oc_goBP_3, by="name")
+sigs_aa_oc=ress_aa_oc[ress_aa_oc$p.adj.x<=0.1 & ress_aa_oc$p.adj.y<=0.1,]
+dim(sigs_aa_oc)
+# 5
+sigs_aa_oc
+write.table(sigs_aa_oc, file="sigs_aa_oc_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
+sigs_aa_oc <- read.table("sigs_aa_oc_GO_name.txt", header=T, sep="\t")
+head(sigs_aa_oc)
+
+#### sym aip to nv
+goods_as_nv=intersect(aip_sym_goBP$name, nv_goBP$name)
+aip_sym_goBP_4 <- aip_sym_goBP[aip_sym_goBP$name %in% goods_as_nv,]
+nv_goBP_4 <- nv_goBP[nv_goBP$name %in% goods_as_nv,]
+ress_as_nv <- merge(aip_sym_goBP_4, nv_goBP_4, by="name")
+sigs_as_nv=ress_as_nv[ress_as_nv$p.adj.x<=0.1 & ress_as_nv$p.adj.y<=0.1,]
+dim(sigs_as_nv)
+#60
+sigs_as_nv
+write.table(sigs_as_nv, file="sigs_as_nv_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
+sigs_as_nv <- read.table("sigs_as_nv_GO_name.txt", header=T, sep="\t")
+head(sigs_as_nv)
+
+#### apo aip to nv
+goods_aa_nv=intersect(aip_apo_goBP$name, nv_goBP$name)
+aip_apo_goBP_5 <- aip_apo_goBP[aip_apo_goBP$name %in% goods_aa_nv,]
+nv_goBP_5 <- nv_goBP[nv_goBP$name %in% goods_aa_nv,]
+ress_aa_nv <- merge(aip_apo_goBP_5, nv_goBP_5, by="name")
+sigs_aa_nv=ress_aa_nv[ress_aa_nv$p.adj.x<=0.1 & ress_aa_nv$p.adj.y<=0.1,]
+dim(sigs_aa_nv)
+# 89
+sigs_aa_nv
+write.table(sigs_aa_nv, file="sigs_aa_nv_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
+sigs_aa_nv <- read.table("sigs_aa_nv_GO_name.txt", header=T, sep="\t")
+head(sigs_aa_nv)
+
+# nematostella to oculina
+goods_nv_oc=intersect(nv_goBP$name, oc_goBP$name)
+nv_goBP_6 <- nv_goBP[nv_goBP$name %in% goods_nv_oc,]
+oc_goBP_6 <- oc_goBP[oc_goBP$name %in% goods_nv_oc,]
+ress_nv_oc <- merge(nv_goBP_6, oc_goBP_6, by="name")
+sigs_nv_oc=ress_nv_oc[ress_nv_oc$p.adj.x<=0.1 & ress_nv_oc$p.adj.y<=0.1,]
+dim(sigs_nv_oc)
+# 2
+sigs_nv_oc
+write.table(sigs_nv_oc, file="sigs_nv_oc_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
+sigs_nv_oc <- read.table("sigs_nv_oc_GO_name.txt", header=T, sep="\t")
+head(sigs_nv_oc)
+```
+
+Create a bubbleplot of GO terms that are significantly over or underrepresented in at least two systems (not including Apo Aiptasia to Sym Aiptasia comparison)
+```{r}
+apo_1 <- sigs_aa_nv %>%
+  select(name, delta.rank.x)
+apo_2 <- sigs_aa_oc %>%
+  select(name, delta.rank.x)
+apo <- rbind(apo_1, apo_2)
+apo <- distinct(apo, .keep_all=FALSE)
+colnames(apo) <- paste(c("GO_Group","Apo Aiptasia"))
+apo <- as.data.frame(apo)
+nrow(apo)
+#93
+
+sym_1 <- sigs_as_nv %>%
+  select(name, delta.rank.x)
+sym_2 <- sigs_as_oc %>%
+  select(name, delta.rank.x)
+sym <- rbind(sym_1, sym_2)
+sym <- distinct(sym, .keep_all=FALSE)
+colnames(sym) <- paste(c("GO_Group","Sym Aiptasia")) 
+sym <- as.data.frame(sym)
+nrow(sym)
+#63
+
+nv_1 <- sigs_aa_nv %>%
+  select(name, delta.rank.y)
+nv_2 <- sigs_as_nv %>%
+  select(name, delta.rank.y)
+nv_3 <- sigs_nv_oc %>%
+  select(name, delta.rank.x)
+colnames(nv_3) <- paste(c("name", "delta.rank.y"))
+nv <- rbind(nv_1, nv_2, nv_3)
+nv <- distinct(nv, .keep_all = FALSE)
+colnames(nv) <- paste(c("GO_Group","Nematostella"))
+nv <- as.data.frame(nv)
+nrow(nv)
+#97
+
+oc_1 <- sigs_aa_oc %>%
+  select(name, delta.rank.y)
+oc_2 <- sigs_as_oc %>%
+  select(name, delta.rank.y)
+oc_3 <- sigs_nv_oc %>%
+  select(name, delta.rank.y)
+oc <- rbind(oc_1, oc_2, oc_3)
+oc <- distinct(oc, .keep_all = FALSE)
+colnames(oc) <- paste(c("GO_Group","Sym Oculina"))
+oc <- as.data.frame(oc)
+nrow(oc)
+#7
+
+apo_sym <- full_join(apo, sym)
+nrow(apo_sym)
+#101
+
+nv_apo_sym <- full_join(nv, apo_sym)
+nv_apo_sym_oc <- full_join(nv_apo_sym, oc)
+nrow(nv_apo_sym_oc)
+#102
+write.table(nv_apo_sym_oc, file="GOdeltarank_all.txt", quote=F, sep="\t", row.names=FALSE)
+
+#use melt to change it to a long format
+melted <- melt(nv_apo_sym_oc)
+head(melted)
+nrow(melted)
+#408
+
+bubbleplot <- ggplot(melted, aes(x=variable, y=GO_Group, fill=factor(sign(value)), size=abs(value))) +
+      geom_point(shape=21, color="black") +
+      scale_fill_manual(values=c("gray50","purple"),guide="none")+
+      scale_size_continuous(limits=c(NA,3500), breaks=c(500,500,1000,1000,1500,1500,2000,2000,2500,2500,3000,3000,3500,3500),labels=c(-3500,-3000,-2500,-2000,-1500,-1000,-500,500,1000,1500,2000,2500,3000,3500), range=c(1,7)) +
+      guides(size = guide_legend(override.aes = list(fill = list("gray50","gray50","gray50","gray50","gray50", "gray50", "gray50","purple","purple","purple","purple","purple","purple","purple"),                                            size=c(7,6,5,4,3,2,1,1,2,3,4,5,6,7))))+
+  xlab("")+
+  ylab("GO Group")+
+  labs(size="Delta Rank Value")+
+  theme(panel.background = element_rect(color="black", fill="grey95"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_text(face="bold", colour="black", size=10),
+        legend.text.align = 1,
+        legend.key.size = unit(10,"points"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12))
+
+bubbleplot
+#saved as bubbleplot_all_GOdeltarank as portrait with 17x10 dimensions
+```
+
+In excel, I opened the file with all the terms and manually extracted all the terms that correspond to biosynthetic process, catabolic processes, or metabolic processes to highlight that starvation is indeed happenening
+```{r}
+starvation <- read.table("GOdeltarank_starvation.txt", header=T, sep="\t")
+colnames(starvation) <- paste(c("GO_Group", "Nematostella", "Apo Aiptasia", "Sym Aiptasia", "Sym Oculina"))
+starvation
+melted_starv <- melt(starvation)
+head(melted_starv)
+nrow(melted_starv)
+#156
+
+bubbleplot_s <- ggplot(melted_starv, aes(x=variable, y=GO_Group, fill=factor(sign(value)), size=abs(value))) +
+      geom_point(shape=21, color="black") +
+      scale_fill_manual(values=c("gray50","purple"), limits=factor(c(-1,1)), guide="legend", labels=c("Enriched in Fed", "Enriched in Starved"), name=NULL)+
+      scale_size_continuous(limits=c(NA,3500), breaks=c(500,500,1000,1000,1500,1500,2000,2000,2500,2500,3000,3000,3500,3500),labels=c(-3500,-3000,-2500,-2000,-1500,-1000,-500,500,1000,1500,2000,2500,3000,3500), range=c(1,7)) +
+      guides(size = guide_legend(override.aes = list(fill = list("gray50","gray50","gray50","gray50","gray50", "gray50", "gray50","purple","purple","purple","purple","purple","purple","purple"),                                            size=c(7,6,5,4,3,2,1,1,2,3,4,5,6,7))), fill=guide_legend(override.aes = list(fill = list("gray50","purple"),size=c(3,3), shape=c(22,22))))+
+  xlab("")+
+  ylab("GO Term")+
+  labs(size="Delta Rank Value")+
+  theme(panel.background = element_rect(color="black", fill="grey95"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_text(face="bold", colour="black", size=10),
+        legend.text.align = 1,
+        legend.key.size = unit(10,"points"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12))
+
+bubbleplot_s
+#saved as bubbleplot_starv_GOdeltarank.pdf as landscape 9x7
+```
+
+
+Did the same with all the terms that correspond explicitly to immunity, defense, stress, damage, response to stimulus --> calling these defense terms
+```{r}
+defense <- read.table("GOdeltarank_immune.txt", header=T, sep="\t")
+colnames(defense) <- paste(c("GO_Group", "Nematostella", "Apo Aiptasia", "Sym Aiptasia", "Sym Oculina"))
+defense
+melted_defense <- melt(defense)
+head(melted_defense)
+nrow(melted_defense)
+#24
+
+bubbleplot_d <- ggplot(melted_defense, aes(x=variable, y=GO_Group, fill=factor(sign(value)), size=abs(value))) +
+      geom_point(shape=21, color="black") +
+      scale_fill_manual(values=c("gray50","purple"), limits=factor(c(-1,1)), guide="legend", labels=c("Enriched in Fed", "Enriched in Starved"), name=NULL)+
+      scale_size_continuous(limits=c(NA,3500), breaks=c(500,500,1000,1000,1500,1500,2000,2000,2500,2500),labels=c(-2500,-2000,-1500,-1000,-500,500,1000,1500,2000,2500), range=c(1,7)) +
+      guides(size = guide_legend(override.aes = list(fill = list("gray50","gray50","gray50","gray50","gray50","purple","purple","purple","purple","purple"),                            size=c(5,4,3,2,1,1,2,3,4,5))), fill=guide_legend(override.aes = list(fill = list("gray50","purple"),size=c(3,3), shape=c(22,22))))+
+      xlab("")+
+      ylab("GO Term")+
+      labs(size="Delta Rank Value")+
+      theme(panel.grid.major.y = element_line(color=c("white", "red", "red", "black", "red", "red2"), linetype = c("solid", "dashed", "dashed", "dashed", "dashed", "dashed")),
+        panel.background = element_rect(color="black", fill="grey95"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_text(face="bold", colour="black", size=10),
+        legend.text.align = 0,
+        legend.key.size = unit(10,"points"),
+        axis.text.x = element_text(colour="black", size=10),
+        axis.text.y = element_text(color="black", size=10, face=c("plain", "bold", "bold", "bold","bold", "bold")),
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12))
+
+bubbleplot_d
+#saved as bubbleplot_def_GOdeltarank as landscape 9x3
+```
+
+
+Making sup tables: apo and sym GO BP terms that are significantly over or underrepresented then highlighting the ones I used for downstream analysis
+```{r}
+head(aip_apo_goBP)
+aip_apo_goBP_sig <- aip_apo_goBP[aip_apo_goBP$p.adj<=0.1,]
+nrow(aip_apo_goBP_sig)
+#795
+write.csv(aip_apo_goBP_sig, "aip_apo_goBP_sig.csv", quote=F)
+
+head(aip_sym_goBP)
+aip_sym_goBP_sig <- aip_sym_goBP[aip_sym_goBP$p.adj<=0.1,]
+nrow(aip_sym_goBP_sig)
+#483
+write.csv(aip_sym_goBP_sig, "aip_sym_goBP_sig.csv", quote=F)
+```
+
+
+
+
+###Susceptibility trial results
+
+Making survival curves
+- Input files have 1=alive and 2=dead in the Mortality column; Day column has the day at which death occurred or 14 for surviving the whole thing
+```{r}
+install.packages("survival")
+library(survival)
+install.packages("survminer",dependencies=T)
+library(survminer)
+install.packages("cmprsk")
+library(cmprsk)
+```
+
+#Making survival curves
+- Input files have 1=alive and 2=dead in the Mortality column; Day column has the day at which death occurred or 14 for surviving the whole thing
+- Directionality is based off direction of coef... positive means more likely to happen because hazard is higher in that state, negative is less likely to happen because hazard is lower in that state
+- first run the coxph by Treat with the current levels (AF AS SF SS); it will compare everything to AF because it goes alphapetically. So what you're interested in is the AS result (AF to AS) and the SF result (AF to SF). Then you will relevel to make AS the "base" and you will be interested in the SS result (AS to SS). Then do one final relevel to make SF the "base" and you will be interested in the SS result (SS to SF)
+
+These analyses contain both runs of each challenge
+
+H2O2
+```{r}
+total_h2o2_input <- read.table("r1r2_h2o2_survfit_input.txt", header=T)
+total_h2o2_survfit_input<- total_h2o2_input[,1:3]
+head(total_h2o2_survfit_input)
+total_sfit_h2o2 <- survfit(Surv(Day, Mortality)~Treat, data=total_h2o2_survfit_input)
+summary(total_sfit_h2o2)$table
+total_h2o2 <- ggsurvplot(total_sfit_h2o2, data=total_h2o2_survfit_input, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoFed","ApoStarved","SymFed","SymStarved"),
+           palette=c("gray50", "purple", "gray50", "purple"), linetype = c("twodash", "twodash", "solid", "solid"), xlab="Days of Exposure to Hydrogen Peroxide", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+total_h2o2
+#saved as total_h2o2_survplot_050923.pdf as landscape with 6x4 dim
+
+#separate out each comparison
+#SF to SS
+total_h2o2_survfit_input_sfss <- total_h2o2_survfit_input[1:96,]
+total_sfit_h2o2_sfss <- survfit(Surv(Day, Mortality)~Treat, data=total_h2o2_survfit_input_sfss)
+summary(total_sfit_h2o2_sfss)$table
+h2o2_sfss <- ggsurvplot(total_sfit_h2o2_sfss, data=total_h2o2_survfit_input_sfss, alpha=0.6, size=1, censor.size=0, legend.labs=c("SymFed","SymStarved"),
+           palette=c("gray50", "purple"), linetype = c("solid", "solid"), xlab="Days of Exposure to Hydrogen Peroxide", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+#saved as sfss_h2o2_survplot_050923.pdf as landscape with 5x3 dim
+
+#SF to AF
+total_h2o2_survfit_input_sfaf <- total_h2o2_survfit_input[c(1:48,97:144),]
+total_sfit_h2o2_sfaf <- survfit(Surv(Day, Mortality)~Treat, data=total_h2o2_survfit_input_sfaf)
+summary(total_sfit_h2o2_sfaf)$table
+h2o2_sfaf <- ggsurvplot(total_sfit_h2o2_sfaf, data=total_h2o2_survfit_input_sfaf, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoFed","SymFed"),
+           palette=c("gray50", "gray50"), linetype = c("dashed", "solid"), xlab="Days of Exposure to Hydrogen Peroxide", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+#saved as sfaf_h2o2_survplot_050923.pdf as landscape with 5x3 dim
+
+#AF to AS
+total_h2o2_survfit_input_afas <- total_h2o2_survfit_input[c(97:192),]
+total_sfit_h2o2_afas <- survfit(Surv(Day, Mortality)~Treat, data=total_h2o2_survfit_input_afas)
+summary(total_sfit_h2o2_afas)$table
+h2o2_afas <- ggsurvplot(total_sfit_h2o2_afas, data=total_h2o2_survfit_input_afas, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoFed","ApoStarved"),
+           palette=c("gray50", "purple"), linetype = c("dashed", "dashed"), xlab="Days of Exposure to Hydrogen Peroxide", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+#saved as afas_h2o2_survplot_050923.pdf as landscape with 5x3 dim
+
+#AS to SS
+total_h2o2_survfit_input_asss <- total_h2o2_survfit_input[c(49:96, 145:192),]
+total_sfit_h2o2_asss <- survfit(Surv(Day, Mortality)~Treat, data=total_h2o2_survfit_input_asss)
+summary(total_sfit_h2o2_asss)$table
+h2o2_asss <- ggsurvplot(total_sfit_h2o2_asss, data=total_h2o2_survfit_input_asss, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoStarved","SymStarved"),
+           palette=c("purple", "purple"), linetype = c("dashed", "solid"), xlab="Days of Exposure to Hydrogen Peroxide", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+#saved as asss_h2o2_survplot_050923.pdf as landscape with 5x3 dim
+
+total_h2o2_input$Treat=factor(total_h2o2_input$Treat,levels=c("AF","AS","SF","SS"))
+
+total_cox_h2o2_1 <- coxph(Surv(time = total_h2o2_input$Day, event = total_h2o2_input$Mortality) ~ Treat, cluster=Treat, data=total_h2o2_input)
+summary(total_cox_h2o2_1)
+#TO AF
+#              coef  exp(coef)   se(coef)  robust se      z Pr(>|z|)    
+#TreatAS  3.970994 53.037228  0.727166  0.202410  19.62   <2e-16 ***
+#TreatSF  1.531727  4.626158  0.781780  0.009887 154.93   <2e-16 ***
+#TreatSS  4.040864 56.875480  0.726589  0.156466  25.83   <2e-16 ***
+
+total_h2o2_input$Treat <- relevel(total_h2o2_input$Treat, "AS")
+total_cox_h2o2_2 <- coxph(Surv(time = total_h2o2_input$Day, event = total_h2o2_input$Mortality) ~ Treat, cluster=Treat, data=total_h2o2_input)
+summary(total_cox_h2o2_2)
+# TO AS 
+#coef  exp(coef)   se(coef)  robust se       z Pr(>|z|)    
+#TreatAF -3.97099   0.01885  0.72717   0.20241 -19.619   <2e-16 ***
+#TreatSF -2.43927   0.08722  0.37276   0.19340 -12.612   <2e-16 ***
+#TreatSS  0.06987   1.07237  0.21986   0.05340   1.308    0.191    
+
+total_h2o2_input$Treat <- relevel(total_h2o2_input$Treat, "SF")
+total_cox_h2o2_3 <- coxph(Surv(time = total_h2o2_input$Day, event = total_h2o2_input$Mortality) ~ Treat, cluster=Treat, data=total_h2o2_input)
+summary(total_cox_h2o2_3)
+# TO SF
+#             coef exp(coef)  se(coef) robust se     z Pr(>|z|)    
+#TreatAS  2.439267 11.464639  0.372757  0.193402   12.61   <2e-16 ***
+#TreatAF -1.531727  0.216162  0.781780  0.009887 -154.93   <2e-16 ***
+#TreatSS  2.509138 12.294324  0.372239  0.148186   16.93   <2e-16 ***
+
+### Relevel back to AF
+total_h2o2_input$Treat <- relevel(total_h2o2_input$Treat, "AF")
+```
+
+Pa14
+```{r}
+total_pa14_input <- read.table("r1r2_pa14_survfit_input.txt", header=T)
+total_pa14_survfit_input<- total_pa14_input[,1:3]
+head(total_pa14_survfit_input)
+total_sfit_pa14 <- survfit(Surv(Day, Mortality)~Treat, data=total_pa14_survfit_input)
+summary(total_sfit_pa14)$table
+total_pa14 <- ggsurvplot(total_sfit_pa14, data=total_pa14_survfit_input, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoFed","ApoStarved","SymFed","SymStarved"),
+           palette=c("gray50", "purple", "gray50", "purple"), linetype = c("twodash", "twodash", "solid", "solid"), xlab="Days Post Pa14 Infection", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+
+total_pa14
+#saved as total_pa14_survplot_050923.pdf as landscape with 6x4 dim
+
+
+
+#separate out each comparison
+#SF to SS
+total_pa14_survfit_input_sfss <- total_pa14_survfit_input[1:96,]
+total_sfit_pa14_sfss <- survfit(Surv(Day, Mortality)~Treat, data=total_pa14_survfit_input_sfss)
+summary(total_sfit_pa14_sfss)$table
+pa14_sfss <- ggsurvplot(total_sfit_pa14_sfss, data=total_pa14_survfit_input_sfss, alpha=0.6, size=1, censor.size=0, legend.labs=c("SymFed","SymStarved"),
+           palette=c("gray50", "purple"), linetype = c("solid", "solid"), xlab="Days Post Pa14 Infection", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+#saved as sfss_pa14_survplot_050923.pdf as landscape with 5x3 dim
+
+#SF to AF
+total_pa14_survfit_input_sfaf <- total_pa14_survfit_input[c(1:48,97:144),]
+total_sfit_pa14_sfaf <- survfit(Surv(Day, Mortality)~Treat, data=total_pa14_survfit_input_sfaf)
+summary(total_sfit_pa14_sfaf)$table
+pa14_sfaf <- ggsurvplot(total_sfit_pa14_sfaf, data=total_pa14_survfit_input_sfaf, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoFed","SymFed"),
+           palette=c("gray50", "gray50"), linetype = c("dashed", "solid"), xlab="Days Post Pa14 Infection", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+#saved as sfaf_pa14_survplot_050923.pdf as landscape with 5x3 dim
+
+#AF to AS
+total_pa14_survfit_input_afas <- total_pa14_survfit_input[c(97:192),]
+total_sfit_pa14_afas <- survfit(Surv(Day, Mortality)~Treat, data=total_pa14_survfit_input_afas)
+summary(total_sfit_pa14_afas)$table
+pa14_afas <- ggsurvplot(total_sfit_pa14_afas, data=total_pa14_survfit_input_afas, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoFed","ApoStarved"),
+           palette=c("gray50", "purple"), linetype = c("dashed", "dashed"), xlab="Days Post Pa14 Infection", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+#saved as afas_pa14_survplot_050923.pdf as landscape with 5x3 dim
+
+#AS to SS
+total_pa14_survfit_input_asss <- total_pa14_survfit_input[c(49:96, 145:192),]
+total_sfit_pa14_asss <- survfit(Surv(Day, Mortality)~Treat, data=total_pa14_survfit_input_asss)
+summary(total_sfit_pa14_asss)$table
+pa14_asss <- ggsurvplot(total_sfit_pa14_asss, data=total_pa14_survfit_input_asss, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoStarved","SymStarved"),
+           palette=c("purple", "purple"), linetype = c("dashed", "solid"), xlab="Days Post Pa14 Infection", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+#saved as asss_pa14_survplot_050923.pdf as landscape with 5x3 dim
+
+total_pa14_input$Treat=factor(total_pa14_input$Treat,levels=c("AF","AS","SF","SS"))
+
+total_cox_pa14_1 <- coxph(Surv(time = total_pa14_input$Day, event = total_pa14_input$Mortality) ~ Treat, cluster=Treat, data=total_pa14_input)
+summary(total_cox_pa14_1)
+#TO AF
+#            coef exp(coef) se(coef) robust se     z Pr(>|z|)    
+#TreatAS  2.02111   7.54668  0.25105   0.38609   5.235 1.65e-07 ***
+#TreatSF  0.91021   2.48484  0.23001   0.29132   3.124  0.00178 ** 
+#TreatSS -0.37527   0.68710  0.21184   0.01325 -28.330  < 2e-16 ***
+
+total_pa14_input$Treat <- relevel(total_pa14_input$Treat, "AS")
+total_cox_pa14_2 <- coxph(Surv(time = total_pa14_input$Day, event = total_pa14_input$Mortality) ~ Treat, cluster=Treat, data=total_pa14_input)
+summary(total_cox_pa14_2)
+# TO AS 
+#            coef exp(coef) se(coef) robust se      z Pr(>|z|)    
+#TreatAF -2.02111   0.13251  0.25105   0.38609  -5.235 1.65e-07 ***
+#TreatSF -1.11090   0.32926  0.21938   0.09596 -11.576  < 2e-16 ***
+#TreatSS -2.39638   0.09105  0.25179   0.38549  -6.216 5.09e-10 ***
+
+total_pa14_input$Treat <- relevel(total_pa14_input$Treat, "SF")
+total_cox_pa14_3 <- coxph(Surv(time = total_pa14_input$Day, event = total_pa14_input$Mortality) ~ Treat, cluster=Treat, data=total_pa14_input)
+summary(total_cox_pa14_3)
+# TO SF
+#          coef exp(coef) se(coef) robust se      z Pr(>|z|)    
+#TreatAS  1.11090   3.03709  0.21938   0.09596 11.576  < 2e-16 ***
+#TreatAF -0.91021   0.40244  0.23001   0.29132 -3.124  0.00178 ** 
+#TreatSS -1.28548   0.27652  0.22556   0.29020 -4.430 9.44e-06 ***
+
+### Relevel back to AF
+total_pa14_input$Treat <- relevel(total_pa14_input$Treat, "AF")
+```
+
+Smarc
+```{r}
+total_smarc_input <- read.table("r1r2_smarc_survfit_input.txt", header=T)
+total_smarc_survfit_input<- total_smarc_input[,1:3]
+head(total_smarc_survfit_input)
+total_sfit_smarc <- survfit(Surv(Day, Mortality)~Treat, data=total_smarc_survfit_input)
+summary(total_sfit_smarc)$table
+total_smarc <- ggsurvplot(total_sfit_smarc, data=total_smarc_survfit_input, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoFed","ApoStarved","SymFed","SymStarved"),
+           palette=c("gray50", "purple", "gray50", "purple"), linetype = c("twodash", "twodash", "solid", "solid"), xlab="Days Post Smarc Infection", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+
+total_smarc
+#saved as total_smarc_survplot_050923.pdf as landscape with 6x4 dim
+
+#separate out each comparison
+#SF to SS
+total_smarc_survfit_input_sfss <- total_smarc_survfit_input[1:96,]
+total_sfit_smarc_sfss <- survfit(Surv(Day, Mortality)~Treat, data=total_smarc_survfit_input_sfss)
+summary(total_sfit_smarc_sfss)$table
+smarc_sfss <- ggsurvplot(total_sfit_smarc_sfss, data=total_smarc_survfit_input_sfss, alpha=0.6, size=1, censor.size=0, legend.labs=c("SymFed","SymStarved"),
+           palette=c("gray50", "purple"), linetype = c("solid", "solid"), xlab="Days Post Smarc Infection", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+#saved as sfss_smarc_survplot_050923.pdf as landscape with 5x3 dim
+
+#SF to AF
+total_smarc_survfit_input_sfaf <- total_smarc_survfit_input[c(1:48,97:144),]
+total_sfit_smarc_sfaf <- survfit(Surv(Day, Mortality)~Treat, data=total_smarc_survfit_input_sfaf)
+summary(total_sfit_smarc_sfaf)$table
+smarc_sfaf <- ggsurvplot(total_sfit_smarc_sfaf, data=total_smarc_survfit_input_sfaf, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoFed","SymFed"), xlim=c(0,30), break.x.by=10,
+           palette=c("gray50", "gray50"), linetype = c("dashed", "solid"), xlab="Days Post Smarc Infection", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+#saved as sfaf_smarc_survplot_050923.pdf as landscape with 5x3 dim
+
+#AF to AS
+total_smarc_survfit_input_afas <- total_smarc_survfit_input[c(97:192),]
+total_sfit_smarc_afas <- survfit(Surv(Day, Mortality)~Treat, data=total_smarc_survfit_input_afas)
+summary(total_sfit_smarc_afas)$table
+smarc_afas <- ggsurvplot(total_sfit_smarc_afas, data=total_smarc_survfit_input_afas, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoFed","ApoStarved"),
+           palette=c("gray50", "purple"), linetype = c("dashed", "dashed"), xlab="Days Post Smarc Infection", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+#saved as afas_smarc_survplot_050923.pdf as landscape with 5x3 dim
+
+#AS to SS
+total_smarc_survfit_input_asss <- total_smarc_survfit_input[c(49:96, 145:192),]
+total_sfit_smarc_asss <- survfit(Surv(Day, Mortality)~Treat, data=total_smarc_survfit_input_asss)
+summary(total_sfit_smarc_asss)$table
+smarc_asss <- ggsurvplot(total_sfit_smarc_asss, data=total_smarc_survfit_input_asss, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoStarved","SymStarved"),
+           palette=c("purple", "purple"), linetype = c("dashed", "solid"), xlab="Days Post Smarc Infection", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+#saved as asss_smarc_survplot_050923.pdf as landscape with 5x3 dim
+
+
+total_smarc_input$Treat=factor(total_smarc_input$Treat,levels=c("AF","AS","SF","SS"))
+
+total_cox_smarc_1 <- coxph(Surv(time = total_smarc_input$Day, event = total_smarc_input$Mortality) ~ Treat, cluster=Treat, data=total_smarc_input)
+summary(total_cox_smarc_1)
+#TO AF
+#            coef exp(coef) se(coef) robust se       z Pr(>|z|)    
+#TreatAS  0.11449   1.12130  0.20824   0.04344  2.636  0.00839 ** 
+#TreatSF  0.80263   2.23139  0.21779   0.12530  6.406  1.5e-10 ***
+#TreatSS -1.15955   0.31363  0.22649   0.13626 -8.510  < 2e-16 ***
+
+total_smarc_input$Treat <- relevel(total_smarc_input$Treat, "AS")
+total_cox_smarc_2 <- coxph(Surv(time = total_smarc_input$Day, event = total_smarc_input$Mortality) ~ Treat, cluster=Treat, data=total_smarc_input)
+summary(total_cox_smarc_2)
+# TO AS 
+#            coef exp(coef) se(coef) robust se      z Pr(>|z|)    
+#TreatAF -0.11449   0.89182  0.20824   0.04344  -2.636  0.00839 ** 
+#TreatSF  0.68813   1.99000  0.21924   0.13631   5.048 4.46e-07 ***
+#TreatSS -1.27404   0.27970  0.22478   0.10673 -11.937  < 2e-16 ***
+
+total_smarc_input$Treat <- relevel(total_smarc_input$Treat, "SF")
+total_cox_smarc_3 <- coxph(Surv(time = total_smarc_input$Day, event = total_smarc_input$Mortality) ~ Treat, cluster=Treat, data=total_smarc_input)
+summary(total_cox_smarc_3)
+# TO SF
+#             coef exp(coef) se(coef) robust se       z Pr(>|z|)    
+#TreatAS -0.6881    0.5025   0.2192    0.1363 -5.048 4.46e-07 ***
+#TreatAF -0.8026    0.4482   0.2178    0.1253 -6.406 1.50e-10 ***
+#TreatSS -1.9622    0.1406   0.2509    0.2419 -8.112 4.96e-16 ***
+
+### Relevel back to AF
+total_smarc_input$Treat <- relevel(total_smarc_input$Treat, "AF")
+```
+
+
