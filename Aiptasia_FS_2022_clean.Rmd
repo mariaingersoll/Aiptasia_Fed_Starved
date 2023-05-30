@@ -4,12 +4,8 @@ output: html_document
 date: "2023-01-21"
 ---
 
-```{r}
-setwd("/Users/mariaingersoll/Desktop/BU_Research/Davies-Gilmore/Aip_FS_2022/Aiptasia_Fed_Starved")
-```
-
 Load in packages
-```{r}
+```{r, message=FALSE}
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 BiocManager::install("DESeq2")
@@ -54,11 +50,17 @@ library("tidyselect")
 library("devtools")
 ```
 
+
+```{r}
+knitr::opts_knit$set(root.dir = "/Users/mariaingersoll/Desktop/BU_Research/Davies-Gilmore/Aip_FS_2022/Aiptasia_Fed_Starved")
+```
+
+
 Open and inspect data
 - this is the host data first (has been filtered to remove symbionts)
 - I will be continuing the full analysis below on the host only data
 ```{r}
-countData <- read.table("AiptasiaFS_2022_counts_2.txt")
+countData <- read.table("./Data_Files/AiptasiaFS_2022_counts_2.txt")
 length(countData[,1])
 #26979
 head(countData)
@@ -70,7 +72,7 @@ head(countData)
 
 totalCounts=colSums(countData)
 barplot(totalCounts, col=c("mediumblue", "cornflowerblue", "mediumblue", "cornflowerblue", "mediumblue", "cornflowerblue", "mediumblue", "cornflowerblue", "mediumblue", "cornflowerblue", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral"), ylab="Raw Counts", xlab="Fed and Starved Apo and Sym Aiptasia")
-#save as rawcounts_220123 as 6x4 landscape
+#save as rawcounts_220123 as 6x4 landscape in Figures directory
 
 min(totalCounts)
 #533348
@@ -80,7 +82,7 @@ max(totalCounts)
 
 Open, inspect, and get count data for symbiont counts from sym individuals
 ```{r}
-countData_s <- read.table("Symbiont_FS_2022_counts.txt")
+countData_s <- read.table("./Data_Files/Symbiont_FS_2022_counts.txt")
 head(countData_s)
 length(countData_s[,1])
 #4525
@@ -92,7 +94,7 @@ head(countData_s)
 
 totalCounts_s=colSums(countData_s)
 barplot(totalCounts_s, col=c("red", "lightcoral", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral"), ylab="Raw Counts", xlab="Symbiont Counts from Fed and Starved Aiptasia")
-#save as rawcounts_symbionts_080223 as 7x4 landscape
+#save as rawcounts_symbionts_080223 as 7x4 landscape in Figure directory
 
 min(totalCounts_s)
 #53761
@@ -136,7 +138,7 @@ dds<-DESeq(dds)
 vsd.ge=assay(vst(dds))
 rl=vst(dds)
 e=ExpressionSet(assay(rl), AnnotatedDataFrame(as.data.frame(colData(rl))))
-v = setwd("/Users/mariaingersoll/Desktop/BU_Research/Davies-Gilmore/Aip_FS_2022")
+v = setwd("/Users/mariaingersoll/Desktop/BU_Research/Davies-Gilmore/Aip_FS_2022/Aiptasia_Fed_Starved/arrayqualitymetrics")
 arrayQualityMetrics(e,outdir=v,intgroup=c("treat"),force=T)
 ```
 
@@ -190,7 +192,7 @@ heatmap.2(as.matrix(sampleDists), key=F, trace="none",
           col=colorpanel(100, "black", "white"), ColSideColors=c("gray80", "purple", "gray80", "purple", "gray80", "purple", "gray80", "purple", "gray80", "purple", "gray20", "purple4", "gray20", "purple4", "gray20", "purple4", "gray20", "purple4", "gray20", "purple4"),RowSideColors = c("gray80", "purple", "gray80", "purple", "gray80", "purple", "gray80", "purple", "gray80", "purple", "gray20", "purple4", "gray20", "purple4", "gray20", "purple4", "gray20", "purple4", "gray20", "purple4"),
           margin=c(10, 10))
 
-#saved as sampledisthm.pdf as landscape with 5x5 dimensions
+#saved as sampledisthm.pdf as landscape with 5x5 dimensions in Figures
 ```
 
 Grouping really strongly by fed and starved treatment before sym state
@@ -225,25 +227,25 @@ table(res_SS_SF$pvalue<0.01)
 # FALSE=24991 TRUE=1987
 
 plotMA(res_AS_AF, main="AS vs AF")
-#saved as plotma_apo as landscape 5x4
+#saved as plotma_apo as landscape 5x4 in Figures
 plotMA(res_SS_SF, main="SS vs SF")
-#saved as plotma_sym as landscape 5x4
+#saved as plotma_sym as landscape 5x4 in Figures
 ```
 
 Now make a table of the differential expression values (log2fc) between AF, AS and SF, SS
 ```{r}
-write.table(res_AS_AF, file="AS_AF_DE_22.txt", quote=F, sep="\t")
-head(read.delim("AS_AF_DE_22.txt"))
-res_AS_AF<- read.delim("AS_AF_DE_22.txt")
+write.table(res_AS_AF, file="./Data_Files/AS_AF_DE_22.txt", quote=F, sep="\t")
+head(read.delim("./Data_Files/AS_AF_DE_22.txt"))
+res_AS_AF<- read.delim("./Data_Files/AS_AF_DE_22.txt")
 head(res_AS_AF)
 res_AS_AF$lfc_apo <- res_AS_AF$log2FoldChange
 lfc_AS_AF <- res_AS_AF %>%
   dplyr::select(lfc_apo)
 head(lfc_AS_AF)
 
-write.table(res_SS_SF, file="SS_SF_DE_22.txt", quote=F, sep="\t")
-head(read.delim("SS_SF_DE_22.txt"))
-res_SS_SF<-read.delim("SS_SF_DE_22.txt") 
+write.table(res_SS_SF, file="./Data_Files/SS_SF_DE_22.txt", quote=F, sep="\t")
+head(read.delim("./Data_Files/SS_SF_DE_22.txt"))
+res_SS_SF<-read.delim("./Data_Files/SS_SF_DE_22.txt") 
 head(res_SS_SF)
 res_SS_SF$lfc_sym <- res_SS_SF$log2FoldChange
 lfc_SS_SF <- res_SS_SF %>%
@@ -262,7 +264,7 @@ ggscatter(lfc, x = "lfc_apo", y = "lfc_sym",
           cor.coef = TRUE, cor.method = "pearson",
           xlab = "DEG LogFoldChange Aposymbiotic", ylab = "DEG LogFoldChange Symbiotic")
 
-#saved as correlation_as.pdf as landscape 5x4
+#saved as correlation_as.pdf as landscape 5x4 in Figures
 ```
 
 - Get the p-values from your data file
@@ -317,23 +319,25 @@ dim(rldpvals_apo)
 table(complete.cases(rldpvals_apo))
 #FALSE  TRUE 
 # 8893 18086 
-write.csv(rldpvals_apo, "mingers_AS_AF_RLDandPVALS_22.csv", quote=F)
+write.csv(rldpvals_apo, "./Data_Files/mingers_AS_AF_RLDandPVALS_22.csv", quote=F)
 
 rldpvals_sym=cbind(rld_sym,val_SS_SF)
 head(rldpvals_sym)
 dim(rldpvals_sym)
 table(complete.cases(rldpvals_sym))
-write.csv(rldpvals_sym, "mingers_SS_SF_RLDandPVALS_22.csv", quote=F)
+#FALSE  TRUE 
+#14647 12332 
+write.csv(rldpvals_sym, "./Data_Files/mingers_SS_SF_RLDandPVALS_22.csv", quote=F)
 ```
 
 Read back in the csv files you just made to prep for PCA
 ```{r}
-rldpvals_apo <- read.csv(file="mingers_AS_AF_RLDandPVALS_22.csv", row.names=1)
+rldpvals_apo <- read.csv(file="./Data_Files/mingers_AS_AF_RLDandPVALS_22.csv", row.names=1)
 head(rldpvals_apo)
 rld_apo <- rldpvals_apo[,1:10]
 head(rld_apo)
 
-rldpvals_sym <- read.csv(file="mingers_SS_SF_RLDandPVALS_22.csv", row.names=1)
+rldpvals_sym <- read.csv(file="./Data_Files/mingers_SS_SF_RLDandPVALS_22.csv", row.names=1)
 head(rldpvals_sym)
 rld_sym <- rldpvals_sym[1:10]
 head(rld_sym)
@@ -350,15 +354,12 @@ Now going to perform PCA on the data to visualize overall effect of experimental
 ```{r}
 #for ALL
 rld_t=t(rld)
-colnames(rld_t)
-head(rld_t)
+#colnames(rld_t)
 pca <- prcomp(rld_t,center = TRUE)
-head(pca)
 li <- pca$sdev^2 / sum(pca$sdev^2)
 pc1v <- round(li[1] * 100, 1)
 pc2v <- round(li[2] * 100, 1)
 pca_s <- as.data.frame(pca$x)
-head(pca_s)
 pca_s <- pca_s[,c(1,2)]
 
 pca_s$Samples = row.names(pca_s)
@@ -367,7 +368,6 @@ pca_s$treat=allData$treat
 pca_s$Sym_Status=allData$symstat
 pca_s$Nutrition_Status=allData$food
 head(pca_s)
-
 ```
 
 Creating your PCA plots
@@ -375,7 +375,7 @@ Creating your PCA plots
 food_color= c("gray50","purple")
 sym_shape = c(1,19)
 
-# saved as landscape with 6x4 as pca_012223.pdf
+
 pca_plot <- ggplot(pca_s, aes(PC1, PC2, color = Nutrition_Status, pch = Sym_Status, group=treat)) +
   geom_point(size=3) +
   #  geom_text_repel(aes(label=Samples)) +
@@ -396,7 +396,7 @@ pca_plot <- ggplot(pca_s, aes(PC1, PC2, color = Nutrition_Status, pch = Sym_Stat
         legend.title= element_blank(),
         legend.text.align = 0,
         legend.key.size=unit(10,"point"))
-pca_plot
+pca_plot # saved as landscape with 6x4 as pca_012223.pdf in Figures
 
 install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
 library(pairwiseAdonis)
@@ -436,18 +436,17 @@ rld_plast <- rld
 head(rld_plast)
 rld_plast_t <- t(rld_plast)
 pca_df_plast <- prcomp(rld_plast_t, center=TRUE)
-head(pca_df_plast)
 
 head(allData)
 allData_2 <- remove_rownames(allData)
 allData_2 <- column_to_rownames(allData_2, var="anemones")
 head(allData_2)
 
-write.csv(allData_2, file="allData_2.csv", quote=F, row.names=TRUE)
-allData_2 <- read.csv("allData_2.csv")
+write.csv(allData_2, file="./Data_Files/allData_2.csv", quote=F, row.names=TRUE)
+allData_2 <- read.csv("./Data_Files/allData_2.csv")
 head(allData_2)
 
-head(pca_df_plast)
+#head(pca_df_plast)
 
 plast_out_all <- PCAplast(pca = pca_df_plast, # the PCA dataframe containing the PCA eigenvalues
          data = allData_2, # the condition/treatment data corresponding to samples
@@ -485,7 +484,7 @@ plast_plot <- ggplot(data = plast_out_all, aes(x = treat, y = dist)) +
         legend.text.align = 0,
         legend.key.size=unit(10,"point"))
 plast_plot
-#saved as plasticity_012223 as landscape with 6x4
+#saved as plasticity_012223 as landscape with 6x4 in Figures
 
 plast_aov <- aov(dist~symstat, data=plast_out_all)
 summary(plast_aov)
@@ -497,7 +496,7 @@ summary(plast_aov)
 
 Read in your results files
 ```{r}
-res_apo = read.table("AS_AF_DE_22.txt")
+res_apo = read.table("./Data_Files/AS_AF_DE_22.txt")
 head(res_apo)
 res_apo = res_apo %>%
   tibble::rownames_to_column(var = "gene_ID")
@@ -508,7 +507,7 @@ nrow(res_apo)
 apo_S_up = filter(res_apo, log2FoldChange > 0, preserve = TRUE)
 apo_S_down = filter(res_apo, log2FoldChange < 0, preserve = TRUE)
 
-res_sym = read.table("SS_SF_DE_22.txt")
+res_sym = read.table("./Data_Files/SS_SF_DE_22.txt")
 head(res_sym)
 res_sym = res_sym %>%
   tibble::rownames_to_column(var = "gene_ID")
