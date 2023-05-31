@@ -1202,7 +1202,7 @@ These analyses contain both runs of each challenge
 
 H2O2
 ```{r}
-total_h2o2_input <- read.table("r1r2_h2o2_survfit_input.txt", header=T)
+total_h2o2_input <- read.table("./Data_Files/r1r2_h2o2_survfit_input.txt", header=T)
 total_h2o2_survfit_input<- total_h2o2_input[,1:3]
 head(total_h2o2_survfit_input)
 total_sfit_h2o2 <- survfit(Surv(Day, Mortality)~Treat, data=total_h2o2_survfit_input)
@@ -1220,9 +1220,9 @@ total_h2o2 <- ggsurvplot(total_sfit_h2o2, data=total_h2o2_survfit_input, alpha=0
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
 total_h2o2
-#saved as total_h2o2_survplot_050923.pdf as landscape with 6x4 dim
+#saved as total_h2o2_survplot_050923.pdf as landscape with 6x4 dim in Figures
 
-#separate out each comparison
+#separate out each comparison, did not use these figures in the final manuscript, but the code is here for reference
 #SF to SS
 total_h2o2_survfit_input_sfss <- total_h2o2_survfit_input[1:96,]
 total_sfit_h2o2_sfss <- survfit(Surv(Day, Mortality)~Treat, data=total_h2o2_survfit_input_sfss)
@@ -1239,7 +1239,7 @@ h2o2_sfss <- ggsurvplot(total_sfit_h2o2_sfss, data=total_h2o2_survfit_input_sfss
         legend.title= element_blank(),
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
-#saved as sfss_h2o2_survplot_050923.pdf as landscape with 5x3 dim
+#saved as sfss_h2o2_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 #SF to AF
 total_h2o2_survfit_input_sfaf <- total_h2o2_survfit_input[c(1:48,97:144),]
@@ -1257,7 +1257,7 @@ h2o2_sfaf <- ggsurvplot(total_sfit_h2o2_sfaf, data=total_h2o2_survfit_input_sfaf
         legend.title= element_blank(),
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
-#saved as sfaf_h2o2_survplot_050923.pdf as landscape with 5x3 dim
+#saved as sfaf_h2o2_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 #AF to AS
 total_h2o2_survfit_input_afas <- total_h2o2_survfit_input[c(97:192),]
@@ -1275,7 +1275,7 @@ h2o2_afas <- ggsurvplot(total_sfit_h2o2_afas, data=total_h2o2_survfit_input_afas
         legend.title= element_blank(),
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
-#saved as afas_h2o2_survplot_050923.pdf as landscape with 5x3 dim
+#saved as afas_h2o2_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 #AS to SS
 total_h2o2_survfit_input_asss <- total_h2o2_survfit_input[c(49:96, 145:192),]
@@ -1293,7 +1293,7 @@ h2o2_asss <- ggsurvplot(total_sfit_h2o2_asss, data=total_h2o2_survfit_input_asss
         legend.title= element_blank(),
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
-#saved as asss_h2o2_survplot_050923.pdf as landscape with 5x3 dim
+#saved as asss_h2o2_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 total_h2o2_input$Treat=factor(total_h2o2_input$Treat,levels=c("AF","AS","SF","SS"))
 
@@ -1329,7 +1329,7 @@ total_h2o2_input$Treat <- relevel(total_h2o2_input$Treat, "AF")
 
 Pa14
 ```{r}
-total_pa14_input <- read.table("r1r2_pa14_survfit_input.txt", header=T)
+total_pa14_input <- read.table("./Data_Files/r1r2_pa14_survfit_input.txt", header=T)
 total_pa14_survfit_input<- total_pa14_input[,1:3]
 head(total_pa14_survfit_input)
 total_sfit_pa14 <- survfit(Surv(Day, Mortality)~Treat, data=total_pa14_survfit_input)
@@ -1348,11 +1348,11 @@ total_pa14 <- ggsurvplot(total_sfit_pa14, data=total_pa14_survfit_input, alpha=0
         legend.key.size=unit(10,"point"))
 
 total_pa14
-#saved as total_pa14_survplot_050923.pdf as landscape with 6x4 dim
+#saved as total_pa14_survplot_050923.pdf as landscape with 6x4 dim in Figures
 
 
 
-#separate out each comparison
+#separate out each comparison, again, didn't use in manuscript but still here
 #SF to SS
 total_pa14_survfit_input_sfss <- total_pa14_survfit_input[1:96,]
 total_sfit_pa14_sfss <- survfit(Surv(Day, Mortality)~Treat, data=total_pa14_survfit_input_sfss)
@@ -1369,7 +1369,7 @@ pa14_sfss <- ggsurvplot(total_sfit_pa14_sfss, data=total_pa14_survfit_input_sfss
         legend.title= element_blank(),
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
-#saved as sfss_pa14_survplot_050923.pdf as landscape with 5x3 dim
+#saved as sfss_pa14_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 #SF to AF
 total_pa14_survfit_input_sfaf <- total_pa14_survfit_input[c(1:48,97:144),]
@@ -1387,7 +1387,7 @@ pa14_sfaf <- ggsurvplot(total_sfit_pa14_sfaf, data=total_pa14_survfit_input_sfaf
         legend.title= element_blank(),
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
-#saved as sfaf_pa14_survplot_050923.pdf as landscape with 5x3 dim
+#saved as sfaf_pa14_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 #AF to AS
 total_pa14_survfit_input_afas <- total_pa14_survfit_input[c(97:192),]
@@ -1405,7 +1405,7 @@ pa14_afas <- ggsurvplot(total_sfit_pa14_afas, data=total_pa14_survfit_input_afas
         legend.title= element_blank(),
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
-#saved as afas_pa14_survplot_050923.pdf as landscape with 5x3 dim
+#saved as afas_pa14_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 #AS to SS
 total_pa14_survfit_input_asss <- total_pa14_survfit_input[c(49:96, 145:192),]
@@ -1423,7 +1423,7 @@ pa14_asss <- ggsurvplot(total_sfit_pa14_asss, data=total_pa14_survfit_input_asss
         legend.title= element_blank(),
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
-#saved as asss_pa14_survplot_050923.pdf as landscape with 5x3 dim
+#saved as asss_pa14_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 total_pa14_input$Treat=factor(total_pa14_input$Treat,levels=c("AF","AS","SF","SS"))
 
@@ -1459,7 +1459,7 @@ total_pa14_input$Treat <- relevel(total_pa14_input$Treat, "AF")
 
 Smarc
 ```{r}
-total_smarc_input <- read.table("r1r2_smarc_survfit_input.txt", header=T)
+total_smarc_input <- read.table("./Data_Files/r1r2_smarc_survfit_input.txt", header=T)
 total_smarc_survfit_input<- total_smarc_input[,1:3]
 head(total_smarc_survfit_input)
 total_sfit_smarc <- survfit(Surv(Day, Mortality)~Treat, data=total_smarc_survfit_input)
@@ -1478,9 +1478,9 @@ total_smarc <- ggsurvplot(total_sfit_smarc, data=total_smarc_survfit_input, alph
         legend.key.size=unit(10,"point"))
 
 total_smarc
-#saved as total_smarc_survplot_050923.pdf as landscape with 6x4 dim
+#saved as total_smarc_survplot_050923.pdf as landscape with 6x4 dim in Figures
 
-#separate out each comparison
+#separate out each comparison, didn't use in manuscript but here for reference
 #SF to SS
 total_smarc_survfit_input_sfss <- total_smarc_survfit_input[1:96,]
 total_sfit_smarc_sfss <- survfit(Surv(Day, Mortality)~Treat, data=total_smarc_survfit_input_sfss)
@@ -1497,7 +1497,7 @@ smarc_sfss <- ggsurvplot(total_sfit_smarc_sfss, data=total_smarc_survfit_input_s
         legend.title= element_blank(),
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
-#saved as sfss_smarc_survplot_050923.pdf as landscape with 5x3 dim
+#saved as sfss_smarc_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 #SF to AF
 total_smarc_survfit_input_sfaf <- total_smarc_survfit_input[c(1:48,97:144),]
@@ -1515,7 +1515,7 @@ smarc_sfaf <- ggsurvplot(total_sfit_smarc_sfaf, data=total_smarc_survfit_input_s
         legend.title= element_blank(),
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
-#saved as sfaf_smarc_survplot_050923.pdf as landscape with 5x3 dim
+#saved as sfaf_smarc_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 #AF to AS
 total_smarc_survfit_input_afas <- total_smarc_survfit_input[c(97:192),]
@@ -1533,7 +1533,7 @@ smarc_afas <- ggsurvplot(total_sfit_smarc_afas, data=total_smarc_survfit_input_a
         legend.title= element_blank(),
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
-#saved as afas_smarc_survplot_050923.pdf as landscape with 5x3 dim
+#saved as afas_smarc_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 #AS to SS
 total_smarc_survfit_input_asss <- total_smarc_survfit_input[c(49:96, 145:192),]
@@ -1551,7 +1551,7 @@ smarc_asss <- ggsurvplot(total_sfit_smarc_asss, data=total_smarc_survfit_input_a
         legend.title= element_blank(),
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
-#saved as asss_smarc_survplot_050923.pdf as landscape with 5x3 dim
+#saved as asss_smarc_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 
 total_smarc_input$Treat=factor(total_smarc_input$Treat,levels=c("AF","AS","SF","SS"))
