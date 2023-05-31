@@ -578,7 +578,7 @@ head(gene)
 
 Get the file with the rlog fold change data, make sure that the gene_ID has isogroup and not AIPGENE. For apo, this file is "mingers_AS_AF_RLDandPVALS_22.csv" and for sym, this file is "mingers_SS_SF_RLDandPVALS_22.csv"
 ```{r}
-apo_DE = read.csv("mingers_AS_AF_RLDandPVALS_22.csv")
+apo_DE = read.csv("./Data_Files/mingers_AS_AF_RLDandPVALS_22.csv")
 head(apo_DE)
 apo_DE= apo_DE %>%
   mutate(gene_ID = gsub("AIPGENE*", "isogroup", X)) %>%
@@ -591,7 +591,7 @@ nrow(rlog_apo_10)
 # 5946
 head(rlog_apo_10)
 
-sym_DE = read.csv("mingers_SS_SF_RLDandPVALS_22.csv")
+sym_DE = read.csv("./Data_Files/mingers_SS_SF_RLDandPVALS_22.csv")
 head(sym_DE)
 sym_DE= sym_DE %>%
   mutate(gene_ID = gsub("AIPGENE*", "isogroup", X)) %>%
@@ -609,7 +609,7 @@ Now filter your GO BP files for the GO terms of interest
 - We are going to start with the overrepresented GO terms of BP that fall under NF-kB response
 -Apo first
 ```{r}
-bp_apo = read.csv("BP_apo_GO_22.csv", sep="\t")
+bp_apo = read.csv("./Data_Files/BP_apo_GO_22.csv", sep="\t")
 head(bp_apo)
 colnames(bp_apo)[4]="gene_ID"
 
@@ -645,12 +645,12 @@ pheatmap(as.matrix(explc_nfkb_apo),
          breaks=c(seq(from=-1,to=1,by=0.1)),
          scale="none",
          legend=T)
-#saved as pheatmap_nfkb_apo_012223.pdf as portrait with 6x4 dimensions
+#saved as pheatmap_nfkb_apo_012223.pdf as portrait with 6x4 dimensions in Figures
 ```
 
 - let's do the same thing but in sym now with just the NF-kB terms
 ```{r}
-bp_sym = read.csv("BP_sym_GO_22.csv", sep="\t")
+bp_sym = read.csv("./Data_Files/BP_sym_GO_22.csv", sep="\t")
 head(bp_sym)
 colnames(bp_sym)[4]="gene_ID"
 
@@ -685,7 +685,7 @@ pheatmap(as.matrix(explc_nfkb_sym),
          breaks=c(seq(from=-1,to=1,by=0.1)),
          scale="none",
          legend=F)
-#saved as pheatmap_nfkb_sym_012223.pdf as portrait with 6x4 dimensions
+#saved as pheatmap_nfkb_sym_012223.pdf as portrait with 6x4 dimensions in Figures
 ```
 
 Now let's look at the underrepresented ROS stress response GO terms (BP) in Apo then in Sym
@@ -720,7 +720,7 @@ pheatmap(as.matrix(explc_rosd_apo),
          breaks=c(seq(from=-1,to=1,by=0.1)),
          scale="none",
          legend=T)
-#saved as pheatmap_ros_apo_012223.pdf as portrait with 6x4 dimensions
+#saved as pheatmap_ros_apo_012223.pdf as portrait with 6x4 dimensions in Figures
 ```
 
 
@@ -755,17 +755,17 @@ pheatmap(as.matrix(explc_rosd_sym),
          breaks=c(seq(from=-1,to=1,by=0.1)),
          scale="none",
          legend=F)
-#saved as pheatmap_ros_sym_012223.pdf as portrait with 5x4 dimensions
+#saved as pheatmap_ros_sym_012223.pdf as portrait with 5x4 dimensions in Figures
 ```
 
 Venn Diagrams
 ```{r}
-res_AS_AF<- read.delim("AS_AF_DE_22.txt")
+res_AS_AF<- read.delim("./Data_Files/AS_AF_DE_22.txt")
 head(res_AS_AF)
 res_AS_AF$lfc_apo <- res_AS_AF$log2FoldChange
 head(res_AS_AF)
 
-res_SS_SF<- read.delim("SS_SF_DE_22.txt")
+res_SS_SF<- read.delim("./Data_Files/SS_SF_DE_22.txt")
 head(res_SS_SF)
 res_SS_SF$lfc_sym <- res_SS_SF$log2FoldChange
 head(res_SS_SF)
@@ -780,7 +780,7 @@ length(sym_DEGs)
 # 2278
 
 candidates_all=list("Apo"=apo_DEGs, "Sym"=sym_DEGs)
-head(candidates_all)
+#head(candidates_all)
 prettyvenn=venn.diagram(
   x = candidates_all,
   category.names=c("Apo (5946)", "Sym (2278)"),
@@ -807,9 +807,10 @@ prettyvenn=venn.diagram(
 
 grid.draw(prettyvenn)
 
-#saved as venn_012323.pdf as landscape with 7x7 dimensions
+#saved as venn_012323.pdf as landscape with 7x7 dimensions in Figures
 ```
 
+##The following was not included in the final manuscript (05/30/23)
 Now Going to do KOG (eukaryotic orthologous groups) between Hanny's Oculina data, Josh's Nv data, and my aiptasia data
 
 - Hanny's data is on her github here: https://github.com/hrivera28/oculina_heterotrophy
