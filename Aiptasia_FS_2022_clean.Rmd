@@ -56,7 +56,7 @@ knitr::opts_knit$set(root.dir = "/Users/mariaingersoll/Desktop/BU_Research/Davie
 ```
 
 
-Open and inspect data
+Open and inspect data (preprocessed using "tagseq_processing_HOWTO" on BU SCC)
 - this is the host data first (has been filtered to remove symbionts)
 - I will be continuing the full analysis below on the host only data
 ```{r}
