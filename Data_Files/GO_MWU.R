@@ -1,58 +1,158 @@
+#Beginning from line 551 from "Aiptasia_FS_2022_clean.Rmd"
+#GO Analysis
+#- this analysis is performed in GO_MWU.R script
 
-# GO_MWU uses continuous measure of significance (such as fold-change or -log(p-value) ) to identify GO categories that are significantly enriched with either up- or down-regulated genes. The advantage - no need to impose arbitrary significance cutoff.
+#-read back in your go files, these will go into the dendrogram analysis
+#- make sure your files are in unix first, so open and save them in BBEdit, and rename them with the proper "isogroup" instead of aipgene
+#- load all the necessary files into your working directory
 
-# If the measure is binary (0 or 1) the script will perform a typical "GO enrichment" analysis based Fisher's exact test: it will show GO categories over-represented among the genes that have 1 as their measure. 
+setwd("/Users/mariaingersoll/Desktop/BU_Research/Davies-Gilmore/Aip_FS_2022/Aiptasia_Fed_Starved/Data_Files/") 
 
-# On the plot, different fonts are used to indicate significance and color indicates enrichment with either up (red) or down (blue) regulated genes. No colors are shown for binary measure analysis.
-
-# The tree on the plot is hierarchical clustering of GO categories based on shared genes. Categories with no branch length between them are subsets of each other.
-
-# The fraction next to GO category name indicates the fraction of "good" genes in it; "good" genes being the ones exceeding the arbitrary absValue cutoff (option in gomwuPlot). For Fisher's based test, specify absValue=0.5. This value does not affect statistics and is used for plotting only.
-
-# Stretch the plot manually to match tree to text
-
-# Mikhail V. Matz, UT Austin, February 2015; matz@utexas.edu
-
-################################################################
-# First, press command-D on mac or ctrl-shift-H in Rstudio and navigate to the directory containing scripts and input files. Then edit, mark and execute the following bits of code, one after another.
-
-
-# Edit these to match your data file names: 
-input="BD_GO.csv" # two columns of comma-separated values: gene id, continuous measure of significance. To perform standard GO enrichment analysis based on Fisher's exact test, use binary measure (0 or 1, i.e., either sgnificant or not).
-goAnnotations="orb_fav_iso2go.txt" # two-column, tab-delimited, one line per gene, multiple GO terms separated by semicolon. If you have multiple lines per gene, use nrify_GOtable.pl prior to running this script.
-goDatabase="go.obo" # download from http://www.geneontology.org/GO.downloads.ontology.shtml
-goDivision="MF" # either MF, or BP, or CC
+#APO FIRST
+    # CC
+input="apo_GO_22.csv"
+goAnnotations="aiptasia_iso2go.tab"
+goDatabase="go.obo"
+goDivision="CC"
 source("gomwu.functions.R")
 
-
-# Calculating stats. It might take ~3 min for MF and BP. Do not rerun it if you just want to replot the data with different cutoffs, go straight to gomwuPlot. If you change any of the numeric values below, delete the files that were generated in previous runs first.
 gomwuStats(input, goDatabase, goAnnotations, goDivision,
-	perlPath="perl", # replace with full path to perl executable if it is not in your system's PATH already
-	largest=0.1,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
-	smallest=5,   # a GO category should contain at least this many genes to be considered
-	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
-#	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
-#	Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
-#	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
+           perlPath="perl",
+           largest=0.1,
+           smallest=5,
+           clusterCutHeight=0.25)
+#208 terms at 10% FDR
+resultsCC=gomwuPlot(input,goAnnotations,goDivision,
+                    absValue=1,
+                    level1=0.1,
+                    level2=0.05,
+                    level3=0.01,
+                    txtsize=1.5,
+                    treeHeight=0.5,
 )
-# do not continue if the printout shows that no GO terms pass 10% FDR.
+#saved as CCapo_012223.pdf as portrait with 30x10 dimensions in Figures
+resultsCC
 
 
-# Plotting results
-quartz()
-results=gomwuPlot(input,goAnnotations,goDivision,
-#	absValue=-log(0.05,10),  # genes with the measure value exceeding this will be counted as "good genes". Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
-	absValue=1,
-	level1=0.1, # FDR threshold for plotting. Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
-	level2=0.05, # FDR cutoff to print in regular (not italic) font.
-	level3=0.01, # FDR cutoff to print in large bold font.
-	txtsize=1.2,    # decrease to fit more on one page, or increase (after rescaling the plot so the tree fits the text) for better "word cloud" effect
-	treeHeight=0.5, # height of the hierarchical clustering tree
-#	colors=c("dodgerblue2","firebrick1","skyblue","lightcoral") # these are default colors, un-remar and change if needed
+    # BP
+input="apo_GO_22.csv"
+goAnnotations="aiptasia_iso2go.tab"
+goDatabase="go.obo"
+goDivision="BP"
+source("gomwu.functions.R")
+
+gomwuStats(input, goDatabase, goAnnotations, goDivision,
+           perlPath="perl",
+           largest=0.1,
+           smallest=5,
+           clusterCutHeight=0.25)
+#795
+resultsBP=gomwuPlot(input,goAnnotations,goDivision,
+                    absValue=1,
+                    level1=0.1,
+                    level2=0.05,
+                    level3=0.01,
+                    txtsize=1.5,
+                    treeHeight=0.5,
 )
-# manually rescale the plot so the tree matches the text 
-# if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
+#saved as BPapo_012223 as portrait with 100x10 dimensions in Figures
+resultsBP
 
-# text representation of results, with actual adjusted p-values
-results
+  # MF
+input="apo_GO_22.csv"
+goAnnotations="aiptasia_iso2go.tab"
+goDatabase="go.obo"
+goDivision="MF"
+source("gomwu.functions.R")
 
+gomwuStats(input, goDatabase, goAnnotations, goDivision,
+           perlPath="perl",
+           largest=0.1,
+           smallest=5,
+           clusterCutHeight=0.25)
+#276
+resultsMF=gomwuPlot(input,goAnnotations,goDivision,
+                    absValue=1,
+                    level1=0.1,
+                    level2=0.05,
+                    level3=0.01,
+                    txtsize=1.5,
+                    treeHeight=0.5,
+)
+#saved as MFapo_012223.pdf as portrait with 45x10 dimenstions in Figures
+resultsMF
+
+#Now Sym
+  # CC
+input="sym_GO_22.csv"
+goAnnotations="aiptasia_iso2go.tab"
+goDatabase="go.obo"
+goDivision="CC"
+source("gomwu.functions.R")
+
+gomwuStats(input, goDatabase, goAnnotations, goDivision,
+           perlPath="perl",
+           largest=0.1,
+           smallest=5,
+           clusterCutHeight=0.25)
+#151
+resultsCC=gomwuPlot(input,goAnnotations,goDivision,
+                    absValue=1,
+                    level1=0.1,
+                    level2=0.05,
+                    level3=0.01,
+                    txtsize=1.5,
+                    treeHeight=0.5,
+)
+#saved as CCsym_012223.pdf as portrait with 30x10 dimensions in Figures
+resultsCC
+
+  # BP
+input="sym_GO_22.csv"
+goAnnotations="aiptasia_iso2go.tab"
+goDatabase="go.obo"
+goDivision="BP"
+source("gomwu.functions.R")
+
+gomwuStats(input, goDatabase, goAnnotations, goDivision,
+           perlPath="perl",
+           largest=0.1,
+           smallest=5,
+           clusterCutHeight=0.25)
+#483
+resultsBP=gomwuPlot(input,goAnnotations,goDivision,
+                    absValue=1,
+                    level1=0.1,
+                    level2=0.05,
+                    level3=0.01,
+                    txtsize=1.5,
+                    treeHeight=0.5,
+)
+#saved as BPsym_012223.pdf as portrait with 75x10 dimensions in Figures
+resultsBP
+
+  # MF
+input="sym_GO_22.csv"
+goAnnotations="aiptasia_iso2go.tab"
+goDatabase="go.obo"
+goDivision="MF"
+source("gomwu.functions.R")
+
+gomwuStats(input, goDatabase, goAnnotations, goDivision,
+           perlPath="perl",
+           largest=0.1,
+           smallest=5,
+           clusterCutHeight=0.25)
+#173
+resultsMF=gomwuPlot(input,goAnnotations,goDivision,
+                    absValue=1,
+                    level1=0.1,
+                    level2=0.05,
+                    level3=0.01,
+                    txtsize=1.5,
+                    treeHeight=0.5,
+)
+#saved as MFsym_012223 as portrait with dimensions 25x10 in Figures
+resultsMF
+
+###Now return to line 559 of "Aiptasia_FS_2022_clean.Rmd"
