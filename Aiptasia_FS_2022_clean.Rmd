@@ -533,7 +533,7 @@ nrow(go_input_apo)
 head(go_input_apo)
 colnames(go_input_apo) <- c("gene", "pval")
 head(go_input_apo)
-write.csv(go_input_apo, file="apo_GO_22.csv", quote=F, row.names=FALSE)
+write.csv(go_input_apo, file="./Data_Files/apo_GO_22.csv", quote=F, row.names=FALSE)
 
 go_input_sym = res_sym %>%
   mutate(mutated_p = -log(pvalue)) %>%
@@ -545,7 +545,7 @@ nrow(go_input_sym)
 head(go_input_sym)
 colnames(go_input_sym) <- c("gene", "pval")
 head(go_input_sym)
-write.csv(go_input_sym, file="sym_GO_22.csv", quote=F, row.names=FALSE)
+write.csv(go_input_sym, file="./Data_Files/sym_GO_22.csv", quote=F, row.names=FALSE)
 ```
 
 GO Analysis
@@ -555,7 +555,8 @@ GO Analysis
 
 - APO FIRST
 ```{r}
-    # cc
+setwd("/Users/mariaingersoll/Desktop/BU_Research/Davies-Gilmore/Aip_FS_2022/Aiptasia_Fed_Starved/Data_Files") 
+   # cc
 input="apo_GO_22.csv"
 goAnnotations="aiptasia_iso2go.tab"
 goDatabase="go.obo"
