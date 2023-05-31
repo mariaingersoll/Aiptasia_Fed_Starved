@@ -560,12 +560,12 @@ GO Analysis
 Next we will investigate specific DEGs from enriched (over/underrepresented) GO terms of interest
 - First make necessary files of DEGs from sym and apo
 ```{r}
-iso2go = read.table("aiptasia_iso2go.tab", sep="\t")
+iso2go = read.table("./Reference/aiptasia_iso2go.tab", sep="\t")
 colnames(iso2go) <- c("gene_ID", "GO.terms")
 head(iso2go)
 
 newnames = c("gene_ID", "accession", "description" )
-iso2gene = read.delim("aiptasia_iso2gene.txt", sep="\t", header=TRUE)
+iso2gene = read.delim("./Reference/aiptasia_iso2gene.txt", sep="\t", header=TRUE)
 colnames(iso2gene) <- newnames
 
 head(iso2gene)
@@ -818,21 +818,7 @@ And the paper she does KOG in (between apo/sym oculina, aiptasia, and salamander
 
 - Nv transcriptome/protein models used to generate KOG file came from here: https://figshare.com/articles/dataset/Nematostella_vectensis_transcriptome_and_gene_models_v2_0/807696
 
-Example instructions for changing the eggnog output file to gene2kog file on the cluster (terminal):
-```{r, eval=FALSE}
-# change the xlsx output file from eggnog to a .txt file and load the .txt file into your working directory
-# select just the columns with the gene name and the single letter cog_category, make sure the $3 is indicating the correct column
-awk -F "\t" 'BEGIN {OFS="\t" }{print $1,$3 }' nve.emapper.annotations.txt | grep -Ev "[,#S]" >nve_gene2kogClass1.tab
-
-# you want to account for the fact that some genes may be mapping to multiple cog categories, so you want to repeat each gene for each category, but you want to skip the first line bc it's the column names
-awk 'BEGIN{OFS="\t"} NR>1 {split($2,a,""); for (i in a){$2=a[i];print}}' nve_gene2kogClass1.tab > nve_gene2kogClass2
-
-# add line 1 with the column names back in
-sed -i -e '1iquery COG_category\' nve_gene2kogClass2
-
-# map to kog_classes file for final product
-awk 'BEGIN {FS=OFS="\t"} NR==FNR {a[$1] = $2;next} {print $1,a[$2]}' kog_classes.txt nve_gene2kogClass2 > nematostella_gene2kogClass_final.tab
-```
+Example instructions for changing the eggnog output file to gene2kog file on the cluster (terminal) are in the file "gene2kog_creation"
 
 Read in your KOG annotation files
 Make sure aipgene and has been switched to isogroup
@@ -844,7 +830,7 @@ I use here the Aip and Nv KOG files I generated, but I will be using the Oc KOG 
 
 Reformated all my kog tables to look nice in the script "odds_ends.R"
 ```{r}
-aip_kog_2 <- read.delim("aip_kog_mvi_final.txt", header=TRUE)
+aip_kog_2 <- read.delim("./Reference/aip_kog_mvi_final.txt", header=TRUE)
 head(aip_kog_2)
 nrow(aip_kog_2)
 #15345
@@ -853,7 +839,7 @@ aip_kog_2%>%filter(term!="")->aip_kog_2
 nrow(aip_kog_2)
 #13897
 
-oc_kog<-read.table("oculina_uniq_kog.tab.txt", header=TRUE)
+oc_kog<-read.table("./Reference/oculina_uniq_kog.tab.txt", header=TRUE)
 head(oc_kog)
 nrow(oc_kog)
 #5007
@@ -861,7 +847,7 @@ oc_kog%>%filter(term!="")->oc_kog
 nrow(oc_kog)
 #4671
 
-nv_kog <- read.delim("nv_kog_mvi_final.txt", header=TRUE)
+nv_kog <- read.delim("./Reference/nv_kog_mvi_final.txt", header=TRUE)
 head(nv_kog)
 nrow(nv_kog)
 # 14606
@@ -876,22 +862,22 @@ nrow(nv_kog)
 - Make sure you've changed the "isogroup" to "NVE" in your Nv_SF_signedP file
 
 ```{r}
-ocu_sgp<-read.csv("ocu_ufct_signedP.csv", header=TRUE)
+ocu_sgp<-read.csv("./Data_Files/ocu_ufct_signedP.csv", header=TRUE)
 head(ocu_sgp)
 
-aips_sgp <- read.csv("sym_GO_22.csv", header=TRUE)
+aips_sgp <- read.csv("./Data_Files/sym_GO_22.csv", header=TRUE)
 head(aips_sgp)
 z <- c("genes","signedlogP")
 colnames(aips_sgp)=paste(z)
 head(aips_sgp)
 
-aipa_sgp <- read.csv("apo_GO_22.csv", header=TRUE)
+aipa_sgp <- read.csv("./Data_Files/apo_GO_22.csv", header=TRUE)
 head(aipa_sgp)
 z <- c("genes","signedlogP")
 colnames(aipa_sgp)=paste(z)
 head(aipa_sgp)
 
-nv_sgp <- read.csv("Nv_SF_signedP.csv", header=TRUE)
+nv_sgp <- read.csv("./Data_Files/Nv_SF_signedP.csv", header=TRUE)
 head(nv_sgp)
 colnames(nv_sgp)=paste(z)
 head(nv_sgp)
@@ -912,7 +898,7 @@ head(ktable_aips_aipa_oc_nv_sgp)
 nrow(ktable_aips_aipa_oc_nv_sgp)
 #23
 
-# save this one for the manuscript, landscape 7 x 5 as KOG_012323
+# save this one for the manuscript, landscape 7 x 5 as KOG_012323 in Figures
 pheatmap(as.matrix(ktable_aips_aipa_oc_nv_sgp),
          color=rev(colorRampPalette(brewer.pal(n=11, name="RdBu"))(160)),
          cluster_rows = T, show_rownames = T, fontsize_row=10, treeheight_row = 5,
@@ -927,10 +913,10 @@ Read in the MWU_BP files generated from BP GO analysis for apo and sym aiptasia 
 And the sym fed/starve oculina MWU_BP file from Hanny (called "MWU_BP_heats_ufct_signedP.csv")
 The nem file is from Josh
 ```{r}
-aip_apo_goBP=read.table("MWU_BP_apo_GO_22.csv",header=T, sep = " ")
-aip_sym_goBP=read.table("MWU_BP_sym_GO_22.csv",header=T, sep = " ")
-oc_goBP=read.table("MWU_BP_heats_ufct_signedP.csv",header=T, sep = " ")
-nv_goBP=read.table("MWU_BP_Nv_starved_GO.csv",header=T, sep = " ")
+aip_apo_goBP=read.table("./Data_Files/MWU_BP_apo_GO_22.csv",header=T, sep = " ")
+aip_sym_goBP=read.table("./Data_Files/MWU_BP_sym_GO_22.csv",header=T, sep = " ")
+oc_goBP=read.table("./Data_Files/MWU_BP_heats_ufct_signedP.csv",header=T, sep = " ")
+nv_goBP=read.table("./Data_Files/MWU_BP_Nv_starved_GO.csv",header=T, sep = " ")
 ```
 
 Make all your pairwise comparisons
@@ -946,8 +932,8 @@ sigs_as_aa=ress_as_aa[ress_as_aa$p.adj.x<=0.1 & ress_as_aa$p.adj.y<=0.1,]
 dim(sigs_as_aa)
 # 394 GO terms that are significant and shared between both by name
 head(sigs_as_aa)
-write.table(sigs_as_aa, file="sigs_as_aa_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
-sigs_as_aa <- read.table("sigs_as_aa_GO_name.txt", header=T, sep="\t")
+write.table(sigs_as_aa, file="./Data_Files/sigs_as_aa_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
+sigs_as_aa <- read.table("./Data_Files/sigs_as_aa_GO_name.txt", header=T, sep="\t")
 head(sigs_as_aa)
 
 #### sym aip to sym oc
@@ -959,8 +945,8 @@ sigs_as_oc=ress_as_oc[ress_as_oc$p.adj.x<=0.1 & ress_as_oc$p.adj.y<=0.1,]
 dim(sigs_as_oc)
 # 4
 sigs_as_oc
-write.table(sigs_as_oc, file="sigs_as_oc_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
-sigs_as_oc <- read.table("sigs_as_oc_GO_name.txt", header=T, sep="\t")
+write.table(sigs_as_oc, file="./Data_Files/sigs_as_oc_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
+sigs_as_oc <- read.table("./Data_Files/sigs_as_oc_GO_name.txt", header=T, sep="\t")
 head(sigs_as_oc)
 
 #### apo aip to sym oc
@@ -972,8 +958,8 @@ sigs_aa_oc=ress_aa_oc[ress_aa_oc$p.adj.x<=0.1 & ress_aa_oc$p.adj.y<=0.1,]
 dim(sigs_aa_oc)
 # 5
 sigs_aa_oc
-write.table(sigs_aa_oc, file="sigs_aa_oc_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
-sigs_aa_oc <- read.table("sigs_aa_oc_GO_name.txt", header=T, sep="\t")
+write.table(sigs_aa_oc, file="./Data_Files/sigs_aa_oc_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
+sigs_aa_oc <- read.table("./Data_Files/sigs_aa_oc_GO_name.txt", header=T, sep="\t")
 head(sigs_aa_oc)
 
 #### sym aip to nv
@@ -985,8 +971,8 @@ sigs_as_nv=ress_as_nv[ress_as_nv$p.adj.x<=0.1 & ress_as_nv$p.adj.y<=0.1,]
 dim(sigs_as_nv)
 #60
 sigs_as_nv
-write.table(sigs_as_nv, file="sigs_as_nv_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
-sigs_as_nv <- read.table("sigs_as_nv_GO_name.txt", header=T, sep="\t")
+write.table(sigs_as_nv, file="./Data_Files/sigs_as_nv_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
+sigs_as_nv <- read.table("./Data_Files/sigs_as_nv_GO_name.txt", header=T, sep="\t")
 head(sigs_as_nv)
 
 #### apo aip to nv
@@ -998,8 +984,8 @@ sigs_aa_nv=ress_aa_nv[ress_aa_nv$p.adj.x<=0.1 & ress_aa_nv$p.adj.y<=0.1,]
 dim(sigs_aa_nv)
 # 89
 sigs_aa_nv
-write.table(sigs_aa_nv, file="sigs_aa_nv_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
-sigs_aa_nv <- read.table("sigs_aa_nv_GO_name.txt", header=T, sep="\t")
+write.table(sigs_aa_nv, file="./Data_Files/sigs_aa_nv_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
+sigs_aa_nv <- read.table("./Data_Files/sigs_aa_nv_GO_name.txt", header=T, sep="\t")
 head(sigs_aa_nv)
 
 # nematostella to oculina
@@ -1011,8 +997,8 @@ sigs_nv_oc=ress_nv_oc[ress_nv_oc$p.adj.x<=0.1 & ress_nv_oc$p.adj.y<=0.1,]
 dim(sigs_nv_oc)
 # 2
 sigs_nv_oc
-write.table(sigs_nv_oc, file="sigs_nv_oc_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
-sigs_nv_oc <- read.table("sigs_nv_oc_GO_name.txt", header=T, sep="\t")
+write.table(sigs_nv_oc, file="./Data_Files/sigs_nv_oc_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
+sigs_nv_oc <- read.table("./Data_Files/sigs_nv_oc_GO_name.txt", header=T, sep="\t")
 head(sigs_nv_oc)
 ```
 
@@ -1075,7 +1061,7 @@ nv_apo_sym <- full_join(nv, apo_sym)
 nv_apo_sym_oc <- full_join(nv_apo_sym, oc)
 nrow(nv_apo_sym_oc)
 #102
-write.table(nv_apo_sym_oc, file="GOdeltarank_all.txt", quote=F, sep="\t", row.names=FALSE)
+write.table(nv_apo_sym_oc, file="./Data_Files/GOdeltarank_all.txt", quote=F, sep="\t", row.names=FALSE)
 
 #use melt to change it to a long format
 melted <- melt(nv_apo_sym_oc)
@@ -1103,14 +1089,14 @@ bubbleplot <- ggplot(melted, aes(x=variable, y=GO_Group, fill=factor(sign(value)
         axis.title.y = ggtext::element_markdown(face="bold",size=12))
 
 bubbleplot
-#saved as bubbleplot_all_GOdeltarank as portrait with 17x10 dimensions
+#saved as bubbleplot_all_GOdeltarank as portrait with 17x10 dimensions in Figures
 ```
 
 In excel, I opened the file with all the terms and manually extracted all the terms that correspond to biosynthetic process, catabolic processes, or metabolic processes to highlight that starvation is indeed happenening
 ```{r}
-starvation <- read.table("GOdeltarank_starvation.txt", header=T, sep="\t")
+starvation <- read.table("./Data_Files/GOdeltarank_starvation.txt", header=T, sep="\t")
 colnames(starvation) <- paste(c("GO_Group", "Nematostella", "Apo Aiptasia", "Sym Aiptasia", "Sym Oculina"))
-starvation
+#starvation
 melted_starv <- melt(starvation)
 head(melted_starv)
 nrow(melted_starv)
@@ -1136,15 +1122,15 @@ bubbleplot_s <- ggplot(melted_starv, aes(x=variable, y=GO_Group, fill=factor(sig
         axis.title.y = ggtext::element_markdown(face="bold",size=12))
 
 bubbleplot_s
-#saved as bubbleplot_starv_GOdeltarank.pdf as landscape 9x7
+#saved as bubbleplot_starv_GOdeltarank.pdf as landscape 9x7 in Figures
 ```
 
 
 Did the same with all the terms that correspond explicitly to immunity, defense, stress, damage, response to stimulus --> calling these defense terms
 ```{r}
-defense <- read.table("GOdeltarank_immune.txt", header=T, sep="\t")
+defense <- read.table("./Data_Files/GOdeltarank_immune.txt", header=T, sep="\t")
 colnames(defense) <- paste(c("GO_Group", "Nematostella", "Apo Aiptasia", "Sym Aiptasia", "Sym Oculina"))
-defense
+#defense
 melted_defense <- melt(defense)
 head(melted_defense)
 nrow(melted_defense)
@@ -1172,7 +1158,7 @@ bubbleplot_d <- ggplot(melted_defense, aes(x=variable, y=GO_Group, fill=factor(s
         axis.title.y = ggtext::element_markdown(face="bold",size=12))
 
 bubbleplot_d
-#saved as bubbleplot_def_GOdeltarank as landscape 9x3
+#saved as bubbleplot_def_GOdeltarank as landscape 9x3 in Figures
 ```
 
 
@@ -1182,13 +1168,13 @@ head(aip_apo_goBP)
 aip_apo_goBP_sig <- aip_apo_goBP[aip_apo_goBP$p.adj<=0.1,]
 nrow(aip_apo_goBP_sig)
 #795
-write.csv(aip_apo_goBP_sig, "aip_apo_goBP_sig.csv", quote=F)
+write.csv(aip_apo_goBP_sig, "./Data_Files/aip_apo_goBP_sig.csv", quote=F)
 
 head(aip_sym_goBP)
 aip_sym_goBP_sig <- aip_sym_goBP[aip_sym_goBP$p.adj<=0.1,]
 nrow(aip_sym_goBP_sig)
 #483
-write.csv(aip_sym_goBP_sig, "aip_sym_goBP_sig.csv", quote=F)
+write.csv(aip_sym_goBP_sig, "./Data_Files/aip_sym_goBP_sig.csv", quote=F)
 ```
 
 
@@ -1198,7 +1184,7 @@ write.csv(aip_sym_goBP_sig, "aip_sym_goBP_sig.csv", quote=F)
 
 Making survival curves
 - Input files have 1=alive and 2=dead in the Mortality column; Day column has the day at which death occurred or 14 for surviving the whole thing
-```{r}
+```{r, message=FALSE}
 install.packages("survival")
 library(survival)
 install.packages("survminer",dependencies=T)

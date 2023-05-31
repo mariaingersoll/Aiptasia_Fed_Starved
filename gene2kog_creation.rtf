@@ -1,0 +1,32 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2636
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww12480\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 ### Example instructions for changing the eggnog output file to gene2kog file on the cluster (terminal):\
+# Hanny's data is on her github here: https://github.com/hrivera28/oculina_heterotrophy\
+And the paper she does KOG in (between apo/sym oculina, aiptasia, and salamanders) is here: https://www.nature.com/articles/s41598-021-00697-6 and the data for that is also on her github\
+\
+# Nv transcriptome/protein models used to generate KOG file came from here: https://figshare.com/articles/dataset/Nematostella_vectensis_transcriptome_and_gene_models_v2_0/807696\
+\
+# change the xlsx output file from eggnog to a .txt file and load the .txt file into your working directory\
+# select just the columns with the gene name and the single letter cog_category, make sure the $3 is indicating the correct column\
+\
+awk -F "\\t" 'BEGIN \{OFS="\\t" \}\{print $1,$3 \}' nve.emapper.annotations.txt | grep -Ev "[,#S]" >nve_gene2kogClass1.tab\
+\
+# you want to account for the fact that some genes may be mapping to multiple cog categories, so you want to repeat each gene for each category, but you want to skip the first line bc it's the column names\
+\
+awk 'BEGIN\{OFS="\\t"\} NR>1 \{split($2,a,""); for (i in a)\{$2=a[i];print\}\}' nve_gene2kogClass1.tab > nve_gene2kogClass2\
+\
+# add line 1 with the column names back in\
+\
+sed -i -e '1iquery COG_category\\' nve_gene2kogClass2\
+\
+# map to kog_classes file for final product\
+\
+awk 'BEGIN \{FS=OFS="\\t"\} NR==FNR \{a[$1] = $2;next\} \{print $1,a[$2]\}' kog_classes.txt nve_gene2kogClass2 > nematostella_gene2kogClass_final.tab\
+\
+\
+}

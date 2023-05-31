@@ -1,0 +1,7 @@
+GO_Group	Nematostella	Apo Aiptasia	Sym Aiptasia	Sym Oculina
+cellular response to DNA damage stimulus	255	-610	NA	NA
+defense response	-235	674	484	NA
+immune response	-302	820	700	684
+reactive oxygen species metabolic process	-963	-1186	-1309	NA
+regulation of immune response	-268	601	659	NA
+regulation of immune system process	-208	478	464	NA
