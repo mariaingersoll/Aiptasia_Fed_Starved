@@ -27,6 +27,9 @@ install.packages("ggtext")
 install.packages("ggpubr")
 install.packages("reshape2")
 install.packages("tidyselect")
+install.packages("survival")
+install.packages("survminer",dependencies=T)
+install.packages("cmprsk")
 
 
 library("DESeq2")                   
@@ -48,6 +51,9 @@ library("ggpubr")
 library("reshape2")
 library("tidyselect")
 library("devtools")
+library("survival")
+library("survminer")
+library("cmprsk")
 ```
 
 
@@ -599,10 +605,10 @@ sym_DE= sym_DE %>%
   relocate(gene_ID, .before=S1F) 
 nrow(sym_DE)
 sym_DE_10 = subset(sym_DE, padj.SS_SF < 0.1)
-nrow(sym_DE_10)
-#2278
 rlog_sym_10 = sym_DE_10[,1:11]
 head(rlog_sym_10)
+nrow(rlog_sym_10)
+#2278
 ```
 
 Now filter your GO BP files for the GO terms of interest
@@ -758,7 +764,109 @@ pheatmap(as.matrix(explc_rosd_sym),
 #saved as pheatmap_ros_sym_012223.pdf as portrait with 5x4 dimensions in Figures
 ```
 
-Venn Diagrams
+
+###Analysis of NF-kB response genes by putative NF-kB binding site
+- Identify all genes that are upregulated following starvation in both apo and sym that have at least 1 NF-kB binding sites (as according to Phil Cleves' PNAS paper: https://www.pnas.org/doi/epdf/10.1073/pnas.2015737117)
+- these genes are also considered "heat-responsive genes" by Phil bc they all go up at 3 hr post heat shock (compared to 0 hr)
+
+```{r}
+head(res_AS_AF)
+head(apo_DE)
+head(rlog_apo_10)
+apo_lfc=cbind(res_AS_AF$lfc_apo)
+apo_rld_pvals_lfc <- cbind(apo_DE, apo_lfc)
+head(apo_rld_pvals_lfc)
+apo_Sup10=subset(apo_rld_pvals_lfc, apo_lfc>0 & padj.AS_AF<0.1 & !is.na(apo_rld_pvals_lfc$padj.AS_AF))
+head(apo_Sup10)
+nrow(apo_Sup10)
+##2874
+
+head(res_SS_SF)
+head(sym_DE)
+sym_lfc=cbind(res_SS_SF$lfc_sym)
+sym_rld_pvals_lfc <- cbind(sym_DE, sym_lfc)
+head(sym_rld_pvals_lfc)
+sym_Sup10=subset(sym_rld_pvals_lfc, sym_lfc>0 & padj.SS_SF<0.1 & !is.na(sym_rld_pvals_lfc$padj.SS_SF))
+head(sym_Sup10)
+nrow(sym_Sup10)
+#951
+
+cleves <- read.delim("./Data_Files/Cleves_PNAS_NF-kB_BS.txt")
+head(cleves)
+cleves_3 <- subset(cleves, NFKB_sites>2)
+nrow(cleves_3)
+#26
+cleves_2 <- subset(cleves, NFKB_sites>1)
+nrow(cleves_2)
+#46
+cleves_1 <- subset(cleves, NFKB_sites>0)
+nrow(cleves_1)
+#81
+
+apoSup10_cleves1 <- apo_Sup10 %>%
+  inner_join(cleves_1)
+nrow(apoSup10_cleves1)
+#29
+head(apoSup10_cleves1)
+apo_cleves_names = apoSup10_cleves1 %>%
+  distinct(gene_ID, .keep_all = TRUE) %>%
+  left_join(gene) %>%
+  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
+  column_to_rownames(var = "gene_symbol") %>%
+  dplyr::select(-pval.AS_AF, -padj.AS_AF, -apo_lfc, -NFKB_sites, -Log2FC_SYM_0_3h, -padj_SYM_0_3h, -Log2FC_APO_0_3h, -padj_APO_0_3h, -gene_ID, -accession, -description) %>%
+  dplyr::select(sort(tidyselect::peek_vars()))
+head(apo_cleves_names)
+nrow(apo_cleves_names)
+#29
+apo_cleves_means = apply(apo_cleves_names, 1, mean)
+explc_apo_cleves = apo_cleves_names-apo_cleves_means
+
+pheatmap(as.matrix(explc_apo_cleves),
+         color=rev(colorRampPalette(brewer.pal(n=11, name="RdBu"))(20)),
+         cluster_rows = T, show_rownames = T, fontsize_row=8, fontsize_col=10, treeheight_row = 10, treeheight_col = 10,
+         cluster_cols = T, show_colnames = T, angle_col= "315", cellheight = 8, cellwidth = 14,
+         breaks=c(seq(from=-1,to=1,by=0.1)),
+         scale="none",
+         legend=T) 
+#saved as apo_nfkb_sites_cleves_060323.pdf as portrait with 5x4 in Figures
+
+symSup10_cleves1 <- sym_Sup10 %>%
+  inner_join(cleves_1)
+nrow(symSup10_cleves1)
+#16
+head(symSup10_cleves1)
+sym_cleves_names = symSup10_cleves1 %>%
+  distinct(gene_ID, .keep_all = TRUE) %>%
+  left_join(gene) %>%
+  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
+  column_to_rownames(var = "gene_symbol") %>%
+  dplyr::select(-pval.SS_SF, -padj.SS_SF, -sym_lfc, -NFKB_sites, -Log2FC_SYM_0_3h, -padj_SYM_0_3h, -Log2FC_APO_0_3h, -padj_APO_0_3h, -gene_ID, -accession, -description) %>%
+  dplyr::select(sort(tidyselect::peek_vars()))
+head(sym_cleves_names)
+nrow(sym_cleves_names)
+#16
+
+sym_cleves_means = apply(sym_cleves_names, 1, mean)
+explc_sym_cleves = sym_cleves_names-sym_cleves_means
+
+callback = function(hc, mat){
+    sv = svd(t(mat))$v[,8]
+    dend = reorder(as.dendrogram(hc), wts = sv)
+    as.hclust(dend)
+}
+
+pheatmap(as.matrix(explc_sym_cleves),
+         color=rev(colorRampPalette(brewer.pal(n=11, name="RdBu"))(20)),
+         cluster_rows = T, show_rownames = T, fontsize_row=8, fontsize_col=10, treeheight_row = 10, treeheight_col = 10,
+         cluster_cols = T, show_colnames = T, clustering_callback=callback, angle_col= "315", cellheight = 8, cellwidth = 14,
+         breaks=c(seq(from=-1,to=1,by=0.1)),
+         scale="none",
+         legend=F) 
+#saved as sym_nfkb_sites_cleves_060323.pdf as portrait with 5x4 in Figures
+```
+
+
+##Venn Diagrams
 ```{r}
 res_AS_AF<- read.delim("./Data_Files/AS_AF_DE_22.txt")
 head(res_AS_AF)
@@ -1184,14 +1292,6 @@ write.csv(aip_sym_goBP_sig, "./Data_Files/aip_sym_goBP_sig.csv", quote=F)
 
 Making survival curves
 - Input files have 1=alive and 2=dead in the Mortality column; Day column has the day at which death occurred or 14 for surviving the whole thing
-```{r, message=FALSE}
-install.packages("survival")
-library(survival)
-install.packages("survminer",dependencies=T)
-library(survminer)
-install.packages("cmprsk")
-library(cmprsk)
-```
 
 #Making survival curves
 - Input files have 1=alive and 2=dead in the Mortality column; Day column has the day at which death occurred or 14 for surviving the whole thing
