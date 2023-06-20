@@ -597,6 +597,13 @@ nrow(rlog_apo_10)
 # 5946
 head(rlog_apo_10)
 
+apo_DE_05 = subset(apo_DE, padj.AS_AF < 0.05) 
+  #na.omit() 
+rlog_apo_05 = apo_DE_05[,1:11]
+nrow(rlog_apo_05)
+# 4858
+head(rlog_apo_05)
+
 sym_DE = read.csv("./Data_Files/mingers_SS_SF_RLDandPVALS_22.csv")
 head(sym_DE)
 sym_DE= sym_DE %>%
@@ -609,6 +616,12 @@ rlog_sym_10 = sym_DE_10[,1:11]
 head(rlog_sym_10)
 nrow(rlog_sym_10)
 #2278
+
+sym_DE_05 = subset(sym_DE, padj.SS_SF < 0.05)
+rlog_sym_05 = sym_DE_05[,1:11]
+head(rlog_sym_05)
+nrow(rlog_sym_05)
+#1724
 ```
 
 Now filter your GO BP files for the GO terms of interest
@@ -621,7 +634,7 @@ colnames(bp_apo)[4]="gene_ID"
 
 nfkb_apo = bp_apo %>%
   filter(str_detect(term, "GO:0043123|GO:0043122|GO:0051092|GO:0007249|GO:0042345|GO:0007250|GO:1901222")) %>% # select desired GO terms (nfkb)
-  left_join(rlog_apo_10) %>% 
+  left_join(rlog_apo_05) %>% 
   drop_na() %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
@@ -631,7 +644,7 @@ nfkb_apo = bp_apo %>%
   dplyr::select(sort(tidyselect::peek_vars()))
 head(nfkb_apo)
 nrow(nfkb_apo)
-#44
+#36
 
 graypurp <- c("gray50", "purple", "gray50", "purple", "gray50", "purple", "gray50", "purple", "gray50", "purple")
 
@@ -662,7 +675,7 @@ colnames(bp_sym)[4]="gene_ID"
 
 nfkb_sym = bp_sym %>%
   filter(str_detect(term, "GO:0043122|GO:0007250|GO:1901222|GO:0042345")) %>%
-  left_join(rlog_sym_10) %>%
+  left_join(rlog_sym_05) %>%
   drop_na() %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
@@ -673,7 +686,7 @@ nfkb_sym = bp_sym %>%
 
 head(nfkb_sym)
 nrow(nfkb_sym)
-#13
+#11
 
 nfkb_sym_means = apply(nfkb_sym, 1, mean)
 explc_nfkb_sym = nfkb_sym-nfkb_sym_means
@@ -698,7 +711,7 @@ Now let's look at the underrepresented ROS stress response GO terms (BP) in Apo 
 ```{r}
 ros_down_apo = bp_apo %>%
   filter(str_detect(term, "GO:0000303|GO:0019430|GO:0071451|GO:0072593")) %>%
-  left_join(rlog_apo_10) %>%
+  left_join(rlog_apo_05) %>%
   drop_na() %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
@@ -708,7 +721,7 @@ ros_down_apo = bp_apo %>%
   dplyr::select(sort(tidyselect::peek_vars()))
 head(ros_down_apo)
 nrow(ros_down_apo)
-#24
+#18
 
 rosdown_apo_means = apply(ros_down_apo, 1, mean)
 explc_rosd_apo = ros_down_apo-rosdown_apo_means
@@ -733,7 +746,7 @@ pheatmap(as.matrix(explc_rosd_apo),
 ```{r}
 ros_down_sym = bp_sym %>%
   filter(str_detect(term, "GO:0072593|GO:0006801|GO:0000303|GO:0019430|GO:0071451")) %>%
-  left_join(rlog_sym_10) %>%
+  left_join(rlog_sym_05) %>%
   drop_na() %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
@@ -761,7 +774,7 @@ pheatmap(as.matrix(explc_rosd_sym),
          breaks=c(seq(from=-1,to=1,by=0.1)),
          scale="none",
          legend=F)
-#saved as pheatmap_ros_sym_012223.pdf as portrait with 5x4 dimensions in Figures
+#saved as pheatmap_ros_sym_012223.pdf as portrait with 6x4 dimensions in Figures
 ```
 
 
@@ -779,6 +792,10 @@ apo_Sup10=subset(apo_rld_pvals_lfc, apo_lfc>0 & padj.AS_AF<0.1 & !is.na(apo_rld_
 head(apo_Sup10)
 nrow(apo_Sup10)
 ##2874
+apo_Sup05=subset(apo_rld_pvals_lfc, apo_lfc>0 & padj.AS_AF<0.05 & !is.na(apo_rld_pvals_lfc$padj.AS_AF))
+head(apo_Sup05)
+nrow(apo_Sup05)
+##2283
 
 head(res_SS_SF)
 head(sym_DE)
@@ -789,6 +806,10 @@ sym_Sup10=subset(sym_rld_pvals_lfc, sym_lfc>0 & padj.SS_SF<0.1 & !is.na(sym_rld_
 head(sym_Sup10)
 nrow(sym_Sup10)
 #951
+sym_Sup05=subset(sym_rld_pvals_lfc, sym_lfc>0 & padj.SS_SF<0.05 & !is.na(sym_rld_pvals_lfc$padj.SS_SF))
+head(sym_Sup05)
+nrow(sym_Sup05)
+#678
 
 cleves <- read.delim("./Data_Files/Cleves_PNAS_NF-kB_BS.txt")
 head(cleves)
@@ -805,51 +826,51 @@ nrow(cleves_1)
 
 Analyze your data against the Cleves data set with 1 or more binding site
 ```{r}
-apoSup10_cleves1 <- apo_Sup10 %>%
+apoSup05_cleves1 <- apo_Sup05 %>%
   inner_join(cleves_1)
-nrow(apoSup10_cleves1)
-#29
-head(apoSup10_cleves1)
-apo_cleves_names = apoSup10_cleves1 %>%
+nrow(apoSup05_cleves1)
+#25
+head(apoSup05_cleves1)
+apo_cleves_names05 = apoSup05_cleves1 %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
   mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
   column_to_rownames(var = "gene_symbol") %>%
   dplyr::select(-pval.AS_AF, -padj.AS_AF, -apo_lfc, -NFKB_sites, -Log2FC_SYM_0_3h, -padj_SYM_0_3h, -Log2FC_APO_0_3h, -padj_APO_0_3h, -gene_ID, -accession, -description) %>%
   dplyr::select(sort(tidyselect::peek_vars()))
-head(apo_cleves_names)
-nrow(apo_cleves_names)
-#29
-apo_cleves_means = apply(apo_cleves_names, 1, mean)
-explc_apo_cleves = apo_cleves_names-apo_cleves_means
+head(apo_cleves_names05)
+nrow(apo_cleves_names05)
+#25
+apo_cleves_means05 = apply(apo_cleves_names05, 1, mean)
+explc_apo_cleves05 = apo_cleves_names05-apo_cleves_means05
 
-pheatmap(as.matrix(explc_apo_cleves),
+pheatmap(as.matrix(explc_apo_cleves05),
          color=rev(colorRampPalette(brewer.pal(n=11, name="RdBu"))(20)),
          cluster_rows = T, show_rownames = T, fontsize_row=8, fontsize_col=10, treeheight_row = 10, treeheight_col = 10,
          cluster_cols = T, show_colnames = T, angle_col= "315", cellheight = 8, cellwidth = 14,
          breaks=c(seq(from=-1,to=1,by=0.1)),
          scale="none",
          legend=T) 
-#saved as apo_nfkb_sites_cleves_060323.pdf as portrait with 5x4 in Figures
+#saved as apo_nfkb_sites_cleves_060323.pdf as portrait with 6x4 in Figures
 
-symSup10_cleves1 <- sym_Sup10 %>%
+symSup05_cleves1 <- sym_Sup05 %>%
   inner_join(cleves_1)
-nrow(symSup10_cleves1)
-#16
-head(symSup10_cleves1)
-sym_cleves_names = symSup10_cleves1 %>%
+nrow(symSup05_cleves1)
+#13
+head(symSup05_cleves1)
+sym_cleves_names05 = symSup05_cleves1 %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
   mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
   column_to_rownames(var = "gene_symbol") %>%
   dplyr::select(-pval.SS_SF, -padj.SS_SF, -sym_lfc, -NFKB_sites, -Log2FC_SYM_0_3h, -padj_SYM_0_3h, -Log2FC_APO_0_3h, -padj_APO_0_3h, -gene_ID, -accession, -description) %>%
   dplyr::select(sort(tidyselect::peek_vars()))
-head(sym_cleves_names)
-nrow(sym_cleves_names)
-#16
+head(sym_cleves_names05)
+nrow(sym_cleves_names05)
+#13
 
-sym_cleves_means = apply(sym_cleves_names, 1, mean)
-explc_sym_cleves = sym_cleves_names-sym_cleves_means
+sym_cleves_means05 = apply(sym_cleves_names05, 1, mean)
+explc_sym_cleves05 = sym_cleves_names05-sym_cleves_means05
 
 callback = function(hc, mat){
     sv = svd(t(mat))$v[,8]
@@ -857,7 +878,7 @@ callback = function(hc, mat){
     as.hclust(dend)
 }
 
-pheatmap(as.matrix(explc_sym_cleves),
+pheatmap(as.matrix(explc_sym_cleves05),
          color=rev(colorRampPalette(brewer.pal(n=11, name="RdBu"))(20)),
          cluster_rows = T, show_rownames = T, fontsize_row=8, fontsize_col=10, treeheight_row = 10, treeheight_col = 10,
          cluster_cols = T, show_colnames = T, clustering_callback=callback, angle_col= "315", cellheight = 8, cellwidth = 14,
@@ -869,25 +890,25 @@ pheatmap(as.matrix(explc_sym_cleves),
 
 Analyze your data against the Cleves data set with 3 or more sites
 ```{r}
-apoSup10_cleves3 <- apo_Sup10 %>%
+apoSup05_cleves3 <- apo_Sup05 %>%
   inner_join(cleves_3)
-nrow(apoSup10_cleves3)
-#14
-head(apoSup10_cleves3)
-apo_cleves_names3 = apoSup10_cleves3 %>%
+nrow(apoSup05_cleves3)
+#13
+head(apoSup05_cleves3)
+apo_cleves_names3_05 = apoSup05_cleves3 %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
   mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
   column_to_rownames(var = "gene_symbol") %>%
   dplyr::select(-pval.AS_AF, -padj.AS_AF, -apo_lfc, -NFKB_sites, -Log2FC_SYM_0_3h, -padj_SYM_0_3h, -Log2FC_APO_0_3h, -padj_APO_0_3h, -gene_ID, -accession, -description) %>%
   dplyr::select(sort(tidyselect::peek_vars()))
-head(apo_cleves_names3)
-nrow(apo_cleves_names3)
-#14
-apo_cleves_means3 = apply(apo_cleves_names3, 1, mean)
-explc_apo_cleves3 = apo_cleves_names3-apo_cleves_means3
+head(apo_cleves_names3_05)
+nrow(apo_cleves_names3_05)
+#13
+apo_cleves_means3_05 = apply(apo_cleves_names3_05, 1, mean)
+explc_apo_cleves3_05 = apo_cleves_names3_05-apo_cleves_means3_05
 
-pheatmap(as.matrix(explc_apo_cleves3),
+pheatmap(as.matrix(explc_apo_cleves3_05),
          color=rev(colorRampPalette(brewer.pal(n=11, name="RdBu"))(20)),
          cluster_rows = T, show_rownames = T, fontsize_row=8, fontsize_col=10, treeheight_row = 10, treeheight_col = 10,
          cluster_cols = T, show_colnames = T, angle_col= "315", cellheight = 8, cellwidth = 14,
@@ -896,32 +917,32 @@ pheatmap(as.matrix(explc_apo_cleves3),
          legend=T) 
 #saved as apo_nfkb_3_sites_cleves_060523.pdf as portrait with 5x4 in Figures
 
-symSup10_cleves3 <- sym_Sup10 %>%
+symSup05_cleves3 <- sym_Sup05 %>%
   inner_join(cleves_3)
-nrow(symSup10_cleves3)
-#7
-head(symSup10_cleves3)
-sym_cleves_names3 = symSup10_cleves3 %>%
+nrow(symSup05_cleves3)
+#5
+head(symSup05_cleves3)
+sym_cleves_names3_05 = symSup05_cleves3 %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
   mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
   column_to_rownames(var = "gene_symbol") %>%
   dplyr::select(-pval.SS_SF, -padj.SS_SF, -sym_lfc, -NFKB_sites, -Log2FC_SYM_0_3h, -padj_SYM_0_3h, -Log2FC_APO_0_3h, -padj_APO_0_3h, -gene_ID, -accession, -description) %>%
   dplyr::select(sort(tidyselect::peek_vars()))
-head(sym_cleves_names3)
-nrow(sym_cleves_names3)
-#7
+head(sym_cleves_names3_05)
+nrow(sym_cleves_names3_05)
+#5
 
-sym_cleves_means3 = apply(sym_cleves_names3, 1, mean)
-explc_sym_cleves3 = sym_cleves_names3-sym_cleves_means3
+sym_cleves_means3_05 = apply(sym_cleves_names3_05, 1, mean)
+explc_sym_cleves3_05 = sym_cleves_names3_05-sym_cleves_means3_05
 
 callback = function(hc, mat){
-    sv = svd(t(mat))$v[,1]
+    sv = svd(t(mat))$v[,2]
     dend = reorder(as.dendrogram(hc), wts = sv)
     as.hclust(dend)
 }
 
-pheatmap(as.matrix(explc_sym_cleves3),
+pheatmap(as.matrix(explc_sym_cleves3_05),
          color=rev(colorRampPalette(brewer.pal(n=11, name="RdBu"))(20)),
          cluster_rows = T, show_rownames = T, fontsize_row=8, fontsize_col=10, treeheight_row = 10, treeheight_col = 10,
          cluster_cols = T, show_colnames = T, clustering_callback=callback, angle_col= "315", cellheight = 8, cellwidth = 14,
@@ -947,10 +968,16 @@ head(res_SS_SF)
 apo_DEGs=row.names(res_AS_AF[res_AS_AF$padj<0.10 & !is.na(res_AS_AF$padj),])
 length(apo_DEGs)
 # 5946
+apo_DEGs05=row.names(res_AS_AF[res_AS_AF$padj<0.05 & !is.na(res_AS_AF$padj),])
+length(apo_DEGs05)
+# 4858
 
 sym_DEGs=row.names(res_SS_SF[res_SS_SF$padj<0.10 & !is.na(res_SS_SF$padj),])
 length(sym_DEGs)
 # 2278
+sym_DEGs05=row.names(res_SS_SF[res_SS_SF$padj<0.05 & !is.na(res_SS_SF$padj),])
+length(sym_DEGs05)
+# 1724
 
 candidates_all=list("Apo"=apo_DEGs, "Sym"=sym_DEGs)
 #head(candidates_all)
@@ -981,6 +1008,55 @@ prettyvenn=venn.diagram(
 grid.draw(prettyvenn)
 
 #saved as venn_012323.pdf as landscape with 7x7 dimensions in Figures
+
+##also identifying the 0.05 cutoffs
+apo_Sup05=subset(apo_rld_pvals_lfc, apo_lfc>0 & padj.AS_AF<0.05 & !is.na(apo_rld_pvals_lfc$padj.AS_AF))
+head(apo_Sup05)
+nrow(apo_Sup05)
+#2283
+
+apo_Sdown05=subset(apo_rld_pvals_lfc, apo_lfc<0 & padj.AS_AF<0.05 & !is.na(apo_rld_pvals_lfc$padj.AS_AF))
+head(apo_Sdown05)
+nrow(apo_Sdown05)
+#2575
+
+sym_Sup05=subset(sym_rld_pvals_lfc, sym_lfc>0 & padj.SS_SF<0.05 & !is.na(sym_rld_pvals_lfc$padj.SS_SF))
+head(sym_Sup05)
+nrow(sym_Sup05)
+#678
+
+sym_Sdown05=subset(sym_rld_pvals_lfc, sym_lfc<0 & padj.SS_SF<0.05 & !is.na(sym_rld_pvals_lfc$padj.SS_SF))
+head(sym_Sdown05)
+nrow(sym_Sdown05)
+#1046
+
+candidates_all05=list("Apo"=apo_DEGs05, "Sym"=sym_DEGs05)
+#head(candidates_all)
+prettyvenn05=venn.diagram(
+  x = candidates_all05,
+  category.names=c("Apo (4858)", "Sym (1724)"),
+  col=c("purple3","purple3"),
+  lwd=c(3,3),
+  filename=NULL,
+  #main = "DEGs Under Starvation",
+  main.cex = 2,
+  main.fontface = "bold",
+  main.fontfamily = "sans",
+  #col = "transparent",
+  fill = c("white","purple"),
+  alpha = 0.3,
+  cex = 2,
+  fontfamily = "sans",
+  fontface = "bold",
+  cat.default.pos = "text",
+  cat.col = c("black", "black"),
+  cat.cex = 1.5,
+  cat.fontfamily = "sans",
+  cat.dist = c(0.2, 0.14),
+  cat.pos = c(-14.5, -3)
+)
+
+grid.draw(prettyvenn05)
 ```
 
 ##The following was not included in the final manuscript (05/30/23)
