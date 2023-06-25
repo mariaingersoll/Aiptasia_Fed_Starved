@@ -1366,12 +1366,13 @@ bubbleplot_s <- ggplot(melted_starv, aes(x=variable, y=GO_Group, fill=factor(sig
         legend.title= element_text(face="bold", colour="black", size=10),
         legend.text.align = 1,
         legend.key.size = unit(10,"points"),
-        axis.text = element_text(colour="black", size=10), 
-        axis.title.x = ggtext::element_markdown(face="bold", size=12),
-        axis.title.y = ggtext::element_markdown(face="bold",size=12))
+        axis.text = element_text(colour="black", size=8), 
+        axis.text.x = element_text(angle=45, vjust=0.9, hjust = 1),
+        axis.title.x = ggtext::element_markdown(face="bold", size=10),
+        axis.title.y = ggtext::element_markdown(face="bold",size=10))
 
 bubbleplot_s
-#saved as bubbleplot_starv_GOdeltarank.pdf as landscape 9x7 in Figures
+#saved as bubbleplot_starv_GOdeltarank.pdf as portrait 7x6.5 in Figures
 ```
 
 
@@ -1401,13 +1402,13 @@ bubbleplot_d <- ggplot(melted_defense, aes(x=variable, y=GO_Group, fill=factor(s
         legend.title= element_text(face="bold", colour="black", size=10),
         legend.text.align = 0,
         legend.key.size = unit(10,"points"),
-        axis.text.x = element_text(colour="black", size=10),
-        axis.text.y = element_text(color="black", size=10, face=c("plain", "bold", "bold", "bold","bold", "bold")),
-        axis.title.x = ggtext::element_markdown(face="bold", size=12),
-        axis.title.y = ggtext::element_markdown(face="bold",size=12))
+        axis.text.x = element_text(colour="black", size=8, angle=45, vjust=0.9, hjust = 1),
+        axis.text.y = element_text(color="black", size=8, face=c("plain", "bold", "bold", "bold","bold", "bold")),
+        axis.title.x = ggtext::element_markdown(face="bold", size=10),
+        axis.title.y = ggtext::element_markdown(face="bold",size=10))
 
 bubbleplot_d
-#saved as bubbleplot_def_GOdeltarank as landscape 9x3 in Figures
+#saved as bubbleplot_def_GOdeltarank as landscape 6.5x3 in Figures
 ```
 
 
