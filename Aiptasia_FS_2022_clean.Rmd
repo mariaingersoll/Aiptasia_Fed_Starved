@@ -578,7 +578,8 @@ head(iso2gene)
 gene = iso2gene %>%
        mutate(gene_symbol = gsub(".* GN=", "", description)) %>%
        mutate(gene_symbol = gsub(" .*", "", gene_symbol)) %>%
-  mutate(gene_symbol = toupper(gene_symbol))
+  mutate(gene_symbol = toupper(gene_symbol)) %>%
+  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE))
 head(gene)
 ```
 
@@ -638,7 +639,6 @@ nfkb_apo = bp_apo %>%
   drop_na() %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
-  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
   column_to_rownames(var = "gene_symbol") %>%
   dplyr::select(-name, -term, -lev, -value, -description, -gene_ID, -accession) %>%
   dplyr::select(sort(tidyselect::peek_vars()))
@@ -664,7 +664,7 @@ pheatmap(as.matrix(explc_nfkb_apo),
          breaks=c(seq(from=-1,to=1,by=0.1)),
          scale="none",
          legend=T)
-#saved as pheatmap_nfkb_apo_012223.pdf as portrait with 6x4 dimensions in Figures
+#saved as pheatmap_nfkb_apo_012223.pdf as portrait with 6x3.5 dimensions in Figures
 ```
 
 - let's do the same thing but in sym now with just the NF-kB terms
@@ -679,7 +679,6 @@ nfkb_sym = bp_sym %>%
   drop_na() %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
-  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
   column_to_rownames(var = "gene_symbol") %>%
   dplyr::select(-name, -term, -lev, -value, -description, -gene_ID, -accession) %>%
   dplyr::select(sort(tidyselect::peek_vars()))
@@ -704,7 +703,7 @@ pheatmap(as.matrix(explc_nfkb_sym),
          breaks=c(seq(from=-1,to=1,by=0.1)),
          scale="none",
          legend=F)
-#saved as pheatmap_nfkb_sym_012223.pdf as portrait with 6x4 dimensions in Figures
+#saved as pheatmap_nfkb_sym_012223.pdf as portrait with 6x3.5 dimensions in Figures
 ```
 
 Now let's look at the underrepresented ROS stress response GO terms (BP) in Apo then in Sym
@@ -715,7 +714,6 @@ ros_down_apo = bp_apo %>%
   drop_na() %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
-  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
   column_to_rownames(var = "gene_symbol") %>%
   dplyr::select(-name, -term, -lev, -value, -description, -gene_ID, -accession) %>%
   dplyr::select(sort(tidyselect::peek_vars()))
@@ -739,7 +737,7 @@ pheatmap(as.matrix(explc_rosd_apo),
          breaks=c(seq(from=-1,to=1,by=0.1)),
          scale="none",
          legend=T)
-#saved as pheatmap_ros_apo_012223.pdf as portrait with 6x4 dimensions in Figures
+#saved as pheatmap_ros_apo_012223.pdf as portrait with 6x3.75 dimensions in Figures
 ```
 
 
@@ -750,7 +748,6 @@ ros_down_sym = bp_sym %>%
   drop_na() %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
-  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
   column_to_rownames(var = "gene_symbol") %>%
   dplyr::select(-name, -term, -lev, -value, -description, -gene_ID, -accession) %>%
   dplyr::select(sort(tidyselect::peek_vars()))
@@ -774,7 +771,7 @@ pheatmap(as.matrix(explc_rosd_sym),
          breaks=c(seq(from=-1,to=1,by=0.1)),
          scale="none",
          legend=F)
-#saved as pheatmap_ros_sym_012223.pdf as portrait with 6x4 dimensions in Figures
+#saved as pheatmap_ros_sym_012223.pdf as portrait with 6x3.75 dimensions in Figures
 ```
 
 
@@ -834,7 +831,6 @@ head(apoSup05_cleves1)
 apo_cleves_names05 = apoSup05_cleves1 %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
-  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
   column_to_rownames(var = "gene_symbol") %>%
   dplyr::select(-pval.AS_AF, -padj.AS_AF, -apo_lfc, -NFKB_sites, -Log2FC_SYM_0_3h, -padj_SYM_0_3h, -Log2FC_APO_0_3h, -padj_APO_0_3h, -gene_ID, -accession, -description) %>%
   dplyr::select(sort(tidyselect::peek_vars()))
@@ -861,7 +857,6 @@ head(symSup05_cleves1)
 sym_cleves_names05 = symSup05_cleves1 %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
-  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
   column_to_rownames(var = "gene_symbol") %>%
   dplyr::select(-pval.SS_SF, -padj.SS_SF, -sym_lfc, -NFKB_sites, -Log2FC_SYM_0_3h, -padj_SYM_0_3h, -Log2FC_APO_0_3h, -padj_APO_0_3h, -gene_ID, -accession, -description) %>%
   dplyr::select(sort(tidyselect::peek_vars()))
@@ -885,7 +880,7 @@ pheatmap(as.matrix(explc_sym_cleves05),
          breaks=c(seq(from=-1,to=1,by=0.1)),
          scale="none",
          legend=F) 
-#saved as sym_nfkb_sites_cleves_060323.pdf as portrait with 5x4 in Figures
+#saved as sym_nfkb_sites_cleves_060323.pdf as portrait with 6x4 in Figures
 ```
 
 Analyze your data against the Cleves data set with 3 or more sites
@@ -898,7 +893,6 @@ head(apoSup05_cleves3)
 apo_cleves_names3_05 = apoSup05_cleves3 %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
-  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
   column_to_rownames(var = "gene_symbol") %>%
   dplyr::select(-pval.AS_AF, -padj.AS_AF, -apo_lfc, -NFKB_sites, -Log2FC_SYM_0_3h, -padj_SYM_0_3h, -Log2FC_APO_0_3h, -padj_APO_0_3h, -gene_ID, -accession, -description) %>%
   dplyr::select(sort(tidyselect::peek_vars()))
@@ -925,7 +919,6 @@ head(symSup05_cleves3)
 sym_cleves_names3_05 = symSup05_cleves3 %>%
   distinct(gene_ID, .keep_all = TRUE) %>%
   left_join(gene) %>%
-  mutate(gene_symbol = make.names(gene_symbol, unique = TRUE)) %>%
   column_to_rownames(var = "gene_symbol") %>%
   dplyr::select(-pval.SS_SF, -padj.SS_SF, -sym_lfc, -NFKB_sites, -Log2FC_SYM_0_3h, -padj_SYM_0_3h, -Log2FC_APO_0_3h, -padj_APO_0_3h, -gene_ID, -accession, -description) %>%
   dplyr::select(sort(tidyselect::peek_vars()))
