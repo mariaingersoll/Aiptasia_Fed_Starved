@@ -214,21 +214,21 @@ head(res_SS_SF)
 
 table(res_AS_AF$padj<0.1)
 # FALSE=12140 TRUE=5946
-summary(res_AS_AF)
+summary(res_AS_AF, alpha=0.05)
 # out of 26979 with nonzero total read count
-# adjusted p-value < 0.1
-# LFC > 0 (up)       : 2874, 11%
-# LFC < 0 (down)     : 3072, 11%
+#adjusted p-value < 0.05
+#LFC > 0 (up)       : 2283, 8.5%
+#LFC < 0 (down)     : 2575, 9.5%
 table(res_AS_AF$pvalue<0.01)
 # FALSE=22387 TRUE=4591
 
 table(res_SS_SF$padj<0.1)
 # FALSE=10054 TRUE=2278
-summary(res_SS_SF)
-# out of 26413 with nonzero total read count
-# adjusted p-value < 0.1
-# LFC > 0 (up)       : 951, 3.5%
-# LFC < 0 (down)     : 1327, 4.9%
+summary(res_SS_SF, alpha=0.05)
+# out of 26979 with nonzero total read count
+#adjusted p-value < 0.05
+#LFC > 0 (up)       : 678, 2.5%
+#LFC < 0 (down)     : 1046, 3.9%
 table(res_SS_SF$pvalue<0.01)
 # FALSE=24991 TRUE=1987
 
@@ -1032,24 +1032,25 @@ prettyvenn05=venn.diagram(
   lwd=c(3,3),
   filename=NULL,
   #main = "DEGs Under Starvation",
-  main.cex = 2,
+  main.cex = 1.5,
   main.fontface = "bold",
   main.fontfamily = "sans",
   #col = "transparent",
   fill = c("white","purple"),
   alpha = 0.3,
-  cex = 2,
+  cex = 1.5,
   fontfamily = "sans",
   fontface = "bold",
   cat.default.pos = "text",
   cat.col = c("black", "black"),
-  cat.cex = 1.5,
+  cat.cex = 1.25,
   cat.fontfamily = "sans",
   cat.dist = c(0.2, 0.14),
-  cat.pos = c(-14.5, -3)
+  cat.pos = c(-14.5, -4.5)
 )
 
 grid.draw(prettyvenn05)
+#saved as venn05_062823.pdf as landscape with 6x6 dimensions in Figures
 ```
 
 ##The following was not included in the final manuscript (05/30/23)
