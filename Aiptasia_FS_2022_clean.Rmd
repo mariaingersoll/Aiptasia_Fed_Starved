@@ -1053,6 +1053,33 @@ grid.draw(prettyvenn05)
 #saved as venn05_062823.pdf as landscape with 6x6 dimensions in Figures
 ```
 
+Looking at the shared 1466 degs, seeing if they go in the same direction in apo and sym
+```{r}
+intersect05 <- intersect(apo_DEGs05, sym_DEGs05)
+shared_apo <- as.data.frame(res_AS_AF)[rownames(res_AS_AF) %in% intersect05, ] %>% select(log2FoldChange)
+apo_name <- c("apo_lfc")
+colnames(shared_apo) <- apo_name
+shared_sym <- as.data.frame(res_SS_SF)[rownames(res_SS_SF) %in% intersect05, ] %>% select(log2FoldChange)
+sym_name <- c("sym_lfc")
+colnames(shared_sym) <- sym_name
+
+shared_both_lfc <- cbind(shared_apo, shared_sym)
+head(shared_both_lfc)
+
+ggscatter(shared_both_lfc, x = "apo_lfc", y = "sym_lfc", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "DEG LogFoldChange Aposymbiotic", ylab = "DEG LogFoldChange Symbiotic")+ theme(panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"))
+#R=0.92, p<2.2e-16; there are only 10 genes that are different in apo and sym (5 that go up in apo and down in sym; 5 that go up in sym and down in apo)
+#let's pull out those 10 guys
+
+apoUP_symDOWN <- shared_both_lfc[shared_both_lfc$apo_lfc>0 & shared_both_lfc$sym_lfc <0, ]
+apoUP_symDOWN
+
+apoDOWN_symUP <- shared_both_lfc[shared_both_lfc$sym_lfc>0 & shared_both_lfc$apo_lfc <0, ]
+apoDOWN_symUP
+```
+
 ##The following was not included in the final manuscript (05/30/23)
 Now Going to do KOG (eukaryotic orthologous groups) between Hanny's Oculina data, Josh's Nv data, and my aiptasia data
 
