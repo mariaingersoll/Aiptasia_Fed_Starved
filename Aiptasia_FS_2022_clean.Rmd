@@ -30,6 +30,7 @@ install.packages("tidyselect")
 install.packages("survival")
 install.packages("survminer",dependencies=T)
 install.packages("cmprsk")
+install.packages("car")
 
 
 library("DESeq2")                   
@@ -54,6 +55,7 @@ library("devtools")
 library("survival")
 library("survminer")
 library("cmprsk")
+library("car")
 ```
 
 
@@ -492,12 +494,38 @@ plast_plot <- ggplot(data = plast_out_all, aes(x = treat, y = dist)) +
 plast_plot
 #saved as plasticity_012223 as landscape with 6x4 in Figures
 
+
+summary(plast_out_all)
 plast_aov <- aov(dist~symstat, data=plast_out_all)
 summary(plast_aov)
 
 #            Df Sum Sq Mean Sq F value   Pr(>F)    
 #symstat      1 1096.1  1096.1    78.8 2.05e-05 ***
-#Residuals    8  111.3    13.9                     
+#Residuals    8  111.3    13.9  
+
+####test assumptions for aov
+
+#homogeneity of variances
+plot(plast_aov, 1)
+#three outliers
+#so check their significance as outliers
+leveneTest(dist ~ symstat, data = plast_out_all)
+#  Df F value Pr(>F)
+#group  1  2.2826 0.1693
+#       8     
+#From leveneTest we can see that the p-value is not less than the significance level of 0.05. This means that there is no evidence to suggest that the variance across groups is statistically significantly different. Therefore, we can assume the homogeneity of variances in the different treatment groups.
+
+#check normality
+plot(plast_aov, 2)
+# Extract the residuals
+aov_residuals <- residuals(object = plast_aov)
+# Run Shapiro-Wilk test
+shapiro.test(x = aov_residuals )
+#Shapiro-Wilk normality test
+#data:  aov_residuals
+#W = 0.90439, p-value = 0.2446
+
+#normality is not violated
 ```
 
 Read in your results files
