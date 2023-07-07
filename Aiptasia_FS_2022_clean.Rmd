@@ -492,7 +492,7 @@ plast_plot <- ggplot(data = plast_out_all, aes(x = treat, y = dist)) +
         legend.text.align = 0,
         legend.key.size=unit(10,"point"))
 plast_plot
-#saved as plasticity_012223 as landscape with 6x4 in Figures
+#saved as plasticity_012223 as portrait with 4x3 in Figures
 
 
 summary(plast_out_all)
