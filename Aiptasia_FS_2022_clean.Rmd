@@ -1108,6 +1108,53 @@ apoDOWN_symUP <- shared_both_lfc[shared_both_lfc$sym_lfc>0 & shared_both_lfc$apo
 apoDOWN_symUP
 ```
 
+Now doing GO analysis on the Apo only, Sym only, and shared DEGs (via Fisher Exact test, following Dan Wuitchik's code)
+
+- First format your input files
+```{r}
+#starting with just the shared ones because those were easiest to pull out from above; doesn't matter whether we do apo or sym for this because they have the same
+head(shared_apo)
+shared_fisher <- shared_apo
+shared_fisher <- rownames_to_column(shared_fisher, var="gene_ID")
+head(shared_fisher) 
+shared_fisher <- shared_fisher %>%
+  mutate(gene_ID = gsub("AIPGENE","isogroup", gene_ID)) %>%
+  mutate(Fishers = 1) %>%
+  dplyr::select(gene_ID, Fishers) %>%
+  full_join(iso2go) %>%
+  mutate(Fishers = if_else(is.na(Fishers), 0, 1)) %>%
+  select(gene_ID, Fishers)
+head(shared_fisher)
+write.csv(shared_fisher, file="./Data_Files/shared_fisher_GO.csv", quote=F, row.names=FALSE)
+
+#now trying to isolate the just apo and just sym ones
+apo_DEGs05_DF <- as.data.frame(apo_DEGs05) %>%
+  mutate(gene_ID = gsub("AIPGENE","isogroup", apo_DEGs05)) %>%
+  mutate(Fishers_apo = 1)%>%
+  dplyr::select(gene_ID, Fishers_apo)
+sym_DEGs05_DF <- as.data.frame(sym_DEGs05) %>%
+  mutate(gene_ID = gsub("AIPGENE","isogroup", sym_DEGs05)) %>%
+  mutate(Fishers_sym = 1)%>%
+  dplyr::select(gene_ID, Fishers_sym)
+fj <- full_join(apo_DEGs05_DF, sym_DEGs05_DF) %>%
+  full_join(iso2go)
+tail(fj)
+
+fishers_apo_only <- fj %>%
+  mutate(Fishers_apo = if_else(is.na(Fishers_apo), 0, 1)) %>%
+  select(gene_ID, Fishers_apo)
+write.csv(fishers_apo_only, file="./Data_Files/fishers_apo_only_GO.csv", quote=F, row.names=FALSE)
+
+fishers_sym_only <- fj %>%
+  mutate(Fishers_sym = if_else(is.na(Fishers_sym), 0, 1)) %>%
+  select(gene_ID, Fishers_sym)
+write.csv(fishers_sym_only, file="./Data_Files/fishers_sym_only_GO.csv", quote=F, row.names=FALSE)
+```
+
+
+
+
+
 ##The following was not included in the final manuscript (05/30/23)
 Now Going to do KOG (eukaryotic orthologous groups) between Hanny's Oculina data, Josh's Nv data, and my aiptasia data
 
