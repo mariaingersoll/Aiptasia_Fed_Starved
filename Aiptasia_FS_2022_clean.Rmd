@@ -1150,9 +1150,22 @@ fishers_sym_only <- fj %>%
   select(gene_ID, Fishers_sym)
 write.csv(fishers_sym_only, file="./Data_Files/fishers_sym_only_GO.csv", quote=F, row.names=FALSE)
 ```
+Then do GO enrichment analysis on the Fisher files in the script "Fisher_MWU.R"
 
+Reformatting the output files to be more easily read
+```{r}
+output_1 <- read.csv("./Data_Files/MWU_BP_shared_fisher_GO.csv", header=TRUE, sep=" ")
+head(output_1)
+write.table(output_1, "./Data_Files/MWU_BP_shared_fisher_GO.txt", quote=F, sep="\t", row.names=FALSE)
 
+output_2 <- read.csv("./Data_Files/MWU_BP_fishers_apo_only_GO.csv", header=TRUE, sep=" ")
+head(output_2)
+write.table(output_2, "./Data_Files/MWU_BP_fishers_apo_only_GO.txt", quote=F, sep="\t", row.names=FALSE)
 
+output_3 <- read.csv("./Data_Files/MWU_BP_fishers_sym_only_GO.csv", header=TRUE, sep=" ")
+head(output_3)
+write.table(output_3, "./Data_Files/MWU_BP_fishers_sym_only_GO.txt", quote=F, sep="\t", row.names=FALSE)
+```
 
 
 ##The following was not included in the final manuscript (05/30/23)
