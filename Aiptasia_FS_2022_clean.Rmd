@@ -68,24 +68,24 @@ Open and inspect data (preprocessed using "tagseq_processing_HOWTO" on BU SCC)
 - this is the host data first (has been filtered to remove symbionts)
 - I will be continuing the full analysis below on the host only data
 ```{r}
-countData <- read.table("./Data_Files/AiptasiaFS_2022_counts_2.txt")
+countData <- read.table("./Data_Files/AiptasiaFS_2022_counts.txt")
 length(countData[,1])
-#26979
+#26974
 head(countData)
 newColNames = c("A1F", "A1S", "A2F", "A2S", "A3F", "A3S", "A4F","A4S","A5F", "A5S", "S1F", "S1S", "S2F", "S2S", "S3F", "S3S", "S4F", "S4S", "S5F", "S5S")
 colnames(countData)=paste(newColNames)
 length(countData[,1])
-#26979
+#26974
 head(countData)
 
 totalCounts=colSums(countData)
 barplot(totalCounts, col=c("mediumblue", "cornflowerblue", "mediumblue", "cornflowerblue", "mediumblue", "cornflowerblue", "mediumblue", "cornflowerblue", "mediumblue", "cornflowerblue", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral"), ylab="Raw Counts", xlab="Fed and Starved Apo and Sym Aiptasia")
-#save as rawcounts_220123 as 6x4 landscape in Figures directory
+#save as rawcounts_220123 as 6.5x4 landscape in Figures directory
 
 min(totalCounts)
-#533348
+#533349
 max(totalCounts)
-#1303847
+#1303890
 ```
 
 Open, inspect, and get count data for symbiont counts from sym individuals
@@ -93,21 +93,21 @@ Open, inspect, and get count data for symbiont counts from sym individuals
 countData_s <- read.table("./Data_Files/Symbiont_FS_2022_counts.txt")
 head(countData_s)
 length(countData_s[,1])
-#4525
+#13650
 newColNames_s = c("S1F", "S1S", "S2F", "S2S", "S3F", "S3S", "S4F", "S4S", "S5F", "S5S")
 colnames(countData_s)=paste(newColNames_s)
 length(countData_s[,1])
-#4525
+#13650
 head(countData_s)
 
 totalCounts_s=colSums(countData_s)
 barplot(totalCounts_s, col=c("red", "lightcoral", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral", "red", "lightcoral"), ylab="Raw Counts", xlab="Symbiont Counts from Fed and Starved Aiptasia")
-#save as rawcounts_symbionts_080223 as 7x4 landscape in Figure directory
+#save as rawcounts_symbionts_071823 as 6.5x4 landscape in Figure directory
 
 min(totalCounts_s)
-#53761
+#30440
 max(totalCounts_s)
-#71559
+#64641
 ```
 
 
@@ -215,24 +215,24 @@ head(res_AS_AF)
 head(res_SS_SF)
 
 table(res_AS_AF$padj<0.1)
-# FALSE=12140 TRUE=5946
+# FALSE=12142 TRUE=5940
 summary(res_AS_AF, alpha=0.05)
 # out of 26979 with nonzero total read count
 #adjusted p-value < 0.05
-#LFC > 0 (up)       : 2283, 8.5%
+#LFC > 0 (up)       : 2285, 8.5%
 #LFC < 0 (down)     : 2575, 9.5%
 table(res_AS_AF$pvalue<0.01)
-# FALSE=22387 TRUE=4591
+# FALSE=22385 TRUE=4588
 
 table(res_SS_SF$padj<0.1)
-# FALSE=10054 TRUE=2278
+# FALSE=10056 TRUE=2274
 summary(res_SS_SF, alpha=0.05)
 # out of 26979 with nonzero total read count
 #adjusted p-value < 0.05
-#LFC > 0 (up)       : 678, 2.5%
-#LFC < 0 (down)     : 1046, 3.9%
+#LFC > 0 (up)       : 674, 2.5%
+#LFC < 0 (down)     : 1042, 3.9%
 table(res_SS_SF$pvalue<0.01)
-# FALSE=24991 TRUE=1987
+# FALSE=24991 TRUE=1982
 
 plotMA(res_AS_AF, main="AS vs AF")
 #saved as plotma_apo as landscape 5x4 in Figures
@@ -284,22 +284,22 @@ val_AS_AF=cbind(res_AS_AF$pvalue, res_AS_AF$padj)
 head(val_AS_AF)
 colnames(val_AS_AF)=c("pval.AS_AF", "padj.AS_AF")
 length(val_AS_AF[,1])
-# 26979
+# 26974
 
 val_SS_SF=cbind(res_SS_SF$pvalue, res_SS_SF$padj)
 head(val_SS_SF)
 colnames(val_SS_SF)=c("pval.SS_SF", "padj.SS_SF")
 length(val_AS_AF[,1])
-# 26979
+# 26974
 ```
 
 Return a logical vector in which both cases (pval and padj) are complete (no missing values)
 ```{r}
 table(complete.cases(val_AS_AF))
-# FALSE=8893 TRUE=18086
+# FALSE=8892 TRUE=18082
 
 table(complete.cases(val_SS_SF))
-# FALSE=14647 TRUE=12332
+# FALSE=14644 TRUE=12330
 ```
 
 - Make a table (that you can visualize via assay) of the rlogdata and pvals
@@ -310,7 +310,7 @@ rlog=rlogTransformation(dds, blind=TRUE)
 rld=assay(rlog)
 head(rld)
 length(rld[,1])
-#26979
+#26974
 
 rld_apo <- rld[,1:10]
 head(rld_apo)
@@ -326,7 +326,7 @@ head(rldpvals_apo)
 dim(rldpvals_apo)
 table(complete.cases(rldpvals_apo))
 #FALSE  TRUE 
-# 8893 18086 
+# 8892 18082
 write.csv(rldpvals_apo, "./Data_Files/mingers_AS_AF_RLDandPVALS_22.csv", quote=F)
 
 rldpvals_sym=cbind(rld_sym,val_SS_SF)
@@ -334,7 +334,7 @@ head(rldpvals_sym)
 dim(rldpvals_sym)
 table(complete.cases(rldpvals_sym))
 #FALSE  TRUE 
-#14647 12332 
+#14644 12330 
 write.csv(rldpvals_sym, "./Data_Files/mingers_SS_SF_RLDandPVALS_22.csv", quote=F)
 ```
 
@@ -427,10 +427,10 @@ adonis2(pca$x ~ Nutrition_Status*Sym_Status, data = pca_s, method='eu', na.rm = 
 
 # Pairwise effect of treatment (to get individual pairwise comparisons)
 pairwise.adonis2(pca$x ~ treat, data = pca_s, method='eu', na.rm = TRUE)
-# AF_vs_AS Pr(>F)=0.008
-# AF_vs_SF Pr(>F)=0.009
-# AS_vs_SS Pr(>F)=0.007
-# SF_vs_SS Pr(>F)=0.006
+# AF_vs_AS Pr(>F)=0.01
+# AF_vs_SF Pr(>F)=0.012
+# AS_vs_SS Pr(>F)=0.01
+# SF_vs_SS Pr(>F)=0.008
 ```
 
 Plasticity using Colleen's code: https://github.com/seabove7/RandomFun/blob/main/Plasticity_function/PlasticityFun_example.R
@@ -500,8 +500,8 @@ plast_aov <- aov(dist~symstat, data=plast_out_all)
 summary(plast_aov)
 
 #            Df Sum Sq Mean Sq F value   Pr(>F)    
-#symstat      1 1096.1  1096.1    78.8 2.05e-05 ***
-#Residuals    8  111.3    13.9  
+#symstat      1 1096.5  1096.5    78.8 2.05e-05 ***
+#Residuals    8  111.4    13.9  
 
 ####test assumptions for aov
 
@@ -511,7 +511,7 @@ plot(plast_aov, 1)
 #so check their significance as outliers
 leveneTest(dist ~ symstat, data = plast_out_all)
 #  Df F value Pr(>F)
-#group  1  2.2826 0.1693
+#group  1  2.2826 0.1697
 #       8     
 #From leveneTest we can see that the p-value is not less than the significance level of 0.05. This means that there is no evidence to suggest that the variance across groups is statistically significantly different. Therefore, we can assume the homogeneity of variances in the different treatment groups.
 
@@ -523,7 +523,7 @@ aov_residuals <- residuals(object = plast_aov)
 shapiro.test(x = aov_residuals )
 #Shapiro-Wilk normality test
 #data:  aov_residuals
-#W = 0.90439, p-value = 0.2446
+#W = 0.90439, p-value = 0.2449
 
 #normality is not violated
 ```
@@ -536,7 +536,7 @@ res_apo = res_apo %>%
   tibble::rownames_to_column(var = "gene_ID")
 head(res_apo)
 nrow(res_apo)
-#26979
+#26974
 
 apo_S_up = filter(res_apo, log2FoldChange > 0, preserve = TRUE)
 apo_S_down = filter(res_apo, log2FoldChange < 0, preserve = TRUE)
@@ -547,7 +547,7 @@ res_sym = res_sym %>%
   tibble::rownames_to_column(var = "gene_ID")
 head(res_sym)
 nrow(res_sym)
-#26979
+#26974
 
 sym_S_up = filter(res_sym, log2FoldChange > 0, preserve = TRUE)
 sym_S_down = filter(res_sym, log2FoldChange < 0, preserve = TRUE)
@@ -563,7 +563,7 @@ go_input_apo = res_apo %>%
   na.omit() %>%
   select(gene_ID, mutated_p_updown)
 nrow(go_input_apo)
-#18086
+#18082
 head(go_input_apo)
 colnames(go_input_apo) <- c("gene", "pval")
 head(go_input_apo)
@@ -575,7 +575,7 @@ go_input_sym = res_sym %>%
   na.omit() %>%
   select(gene_ID, mutated_p_updown)
 nrow(go_input_sym)
-#12332
+#12330
 head(go_input_sym)
 colnames(go_input_sym) <- c("gene", "pval")
 head(go_input_sym)
@@ -623,14 +623,14 @@ apo_DE_10 = subset(apo_DE, padj.AS_AF < 0.1)
   #na.omit() 
 rlog_apo_10 = apo_DE_10[,1:11]
 nrow(rlog_apo_10)
-# 5946
+# 5940
 head(rlog_apo_10)
 
 apo_DE_05 = subset(apo_DE, padj.AS_AF < 0.05) 
   #na.omit() 
 rlog_apo_05 = apo_DE_05[,1:11]
 nrow(rlog_apo_05)
-# 4858
+# 4860
 head(rlog_apo_05)
 
 sym_DE = read.csv("./Data_Files/mingers_SS_SF_RLDandPVALS_22.csv")
@@ -644,14 +644,26 @@ sym_DE_10 = subset(sym_DE, padj.SS_SF < 0.1)
 rlog_sym_10 = sym_DE_10[,1:11]
 head(rlog_sym_10)
 nrow(rlog_sym_10)
-#2278
+#2274
 
 sym_DE_05 = subset(sym_DE, padj.SS_SF < 0.05)
 rlog_sym_05 = sym_DE_05[,1:11]
 head(rlog_sym_05)
 nrow(rlog_sym_05)
-#1724
+#1716
 ```
+
+Reformat GO BP output tables
+```{r}
+go_bp_apo <- read.csv("./Data_Files/MWU_BP_apo_GO_22.csv", header=TRUE, sep=" ")
+head(go_bp_apo)
+write.table(go_bp_apo, "./Data_Files/MWU_BP_apo_GO_22.txt", quote=F, sep="\t", row.names=FALSE)
+
+go_bp_sym <- read.csv("./Data_Files/MWU_BP_sym_GO_22.csv", header=TRUE, sep=" ")
+head(go_bp_sym)
+write.table(go_bp_sym, "./Data_Files/MWU_BP_sym_GO_22.txt", quote=F, sep="\t", row.names=FALSE)
+```
+
 
 Now filter your GO BP files for the GO terms of interest
 - We are going to start with the overrepresented GO terms of BP that fall under NF-kB response

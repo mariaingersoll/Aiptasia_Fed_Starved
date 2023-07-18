@@ -46,7 +46,7 @@ gomwuStats(input, goDatabase, goAnnotations, goDivision,
            largest=0.1,
            smallest=5,
            clusterCutHeight=0.25)
-#795
+#796
 resultsBP=gomwuPlot(input,goAnnotations,goDivision,
                     absValue=1,
                     level1=0.1,
@@ -119,7 +119,7 @@ gomwuStats(input, goDatabase, goAnnotations, goDivision,
            largest=0.1,
            smallest=5,
            clusterCutHeight=0.25)
-#483
+#488
 resultsBP=gomwuPlot(input,goAnnotations,goDivision,
                     absValue=1,
                     level1=0.1,
@@ -128,7 +128,7 @@ resultsBP=gomwuPlot(input,goAnnotations,goDivision,
                     txtsize=1.5,
                     treeHeight=0.5,
 )
-#saved as BPsym_012223.pdf as portrait with 75x10 dimensions in Figures
+#saved as BPsym_012223.pdf as portrait with 76x10 dimensions in Figures
 resultsBP
 
   # MF

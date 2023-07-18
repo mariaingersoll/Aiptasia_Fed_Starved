@@ -1,4 +1,4 @@
-sTag-based RNA-seq reads processing pipeline, version December 29, 2017
+Tag-based RNA-seq reads processing pipeline, version December 29, 2017
 #Modified for the SCC by Davies in 2019
 
 #More info on the packages we will be using
@@ -12,12 +12,16 @@ sTag-based RNA-seq reads processing pipeline, version December 29, 2017
 1. Working in /projectnb/davieslab/mingers/Aip_FedStarve_2022
 ls -l
 
+#concatenate host and symbiont (ssA01) transcriptomes
+cat aiptasia_genome.mRNA.fa S_linucheae_CCMP2456.CDS.fna > aiptasia_ssA01_cat_mRNA.fasta
+#-----------------------
+
 #check all our files
 head A1F_S195_L001_R1_001.fastq  ##these are our raw sequence files; we have two lanes for each sample
 
-head -n 100 aiptasia_bminutum_cat_mrna.fa #this is a concatenated Aiptasia and bminutum transcriptomes (the individual transcriptomes are in the Aiptasia_FedStarve_2021 directory)
+head -n 100 aiptasia_ssA01_cat_mRNA.fasta 
 
-grep '>' aiptasia_bminutum_cat_mrna.fa | wc -l ##counts the number of contigs in your fasta file
+grep '>' aiptasia_ssA01_cat_mRNA.fasta | wc -l ##counts the number of contigs in your fasta file
 
 head aiptasia_seq2iso.tab #this is a file that assigns a unique 'isogroup' for sequences depending on how it was assembled, multiple sequences can be inferred to be the same gene; we are using just the Aiptasia one here to filter out the symbiont genes
 
@@ -45,7 +49,7 @@ mv *001.fastq* raw_fastqs
 
 module load fastx-toolkit
 
-# creating and launching the cleaning process for all files in the same time:
+# creating and launching the cleaning process for all files at the same time:
 tagseq_trim_launch.pl '\.fastq$' > clean
 ##look at what is being done in clean
 nano clean
@@ -71,12 +75,12 @@ cat trim.(tab complete)
 
 module load bowtie2
 # creating bowtie2 index for your transcriptome:
-bowtie2-build aiptasia_bminutum_cat_mrna.fa aiptasia_bminutum_cat_mrna.fa 
+bowtie2-build aiptasia_ssA01_cat_mRNA.fasta aiptasia_ssA01_cat_mRNA.fasta 
 ls -l
 
 #---------------------------------------Mapping reads to reference transcriptome
 
-tagseq_bowtie2map.pl "trim$" aiptasia_bminutum_cat_mrna.fa  > maps
+tagseq_bowtie2map.pl "trim$" aiptasia_ssA01_cat_mRNA.fasta  > maps
 nano maps
 
 scc6_qsub_launcher.py -N maps -P davieslab -jobsfile maps
@@ -101,7 +105,7 @@ samcount_launch_bt2.pl '\.sam' aiptasia_seq2iso.tab > sc
 nano sc
 
 scc6_qsub_launcher.py -N sc -P davieslab -jobsfile sc
-#this should create a sc.array.qsub and a sc_array_commands.txt files
+#this should create a sc_array.qsub and a sc_array_commands.txt files
 
 qsub sc_array.qsub
 
@@ -117,3 +121,24 @@ expression_compiler.pl *.sam.counts > AiptasiaFS_2022_counts.txt
 head AiptasiaFS_2022_counts.txt
 
 # DONE! use your favorite R packaged (DESeq2, WGCNA) to make sense of the counts.
+
+#--------------------------------------- Sym count analysis
+#####copy sym only .sam files to symbiont_counts folder and create ssA01_seq2iso.txt file
+## make seq2iso
+
+awk -F "\t" '/Slin/' S_linucheae_CCMP2456.CDS.fna > ssA01_seq2iso1.txt
+awk '{print $0,$NF}' ssA01_seq2iso1.txt > ssA01_seq2iso2.txt
+tr -d '>' < ssA01_seq2iso2.txt > ssA01_seq2iso.txt
+head ssA01_seq2iso.txt
+
+samcount_launch_bt2.pl '\.sam' ssA01_seq2iso.txt > sc
+nano sc
+
+scc6_qsub_launcher.py -N sc -P davieslab -jobsfile sc
+#this should create a sc_array.qsub and a sc_array_commands.txt files
+
+qsub sc_array.qsub
+
+expression_compiler.pl *.sam.counts > Symbiont_FS_2022_counts.txt
+
+head Symbiont_FS_2022_counts.txt
