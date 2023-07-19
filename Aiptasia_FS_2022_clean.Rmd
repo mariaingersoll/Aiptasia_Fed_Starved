@@ -828,11 +828,11 @@ head(apo_rld_pvals_lfc)
 apo_Sup10=subset(apo_rld_pvals_lfc, apo_lfc>0 & padj.AS_AF<0.1 & !is.na(apo_rld_pvals_lfc$padj.AS_AF))
 head(apo_Sup10)
 nrow(apo_Sup10)
-##2874
+##2872
 apo_Sup05=subset(apo_rld_pvals_lfc, apo_lfc>0 & padj.AS_AF<0.05 & !is.na(apo_rld_pvals_lfc$padj.AS_AF))
 head(apo_Sup05)
 nrow(apo_Sup05)
-##2283
+##2285
 
 head(res_SS_SF)
 head(sym_DE)
@@ -842,11 +842,11 @@ head(sym_rld_pvals_lfc)
 sym_Sup10=subset(sym_rld_pvals_lfc, sym_lfc>0 & padj.SS_SF<0.1 & !is.na(sym_rld_pvals_lfc$padj.SS_SF))
 head(sym_Sup10)
 nrow(sym_Sup10)
-#951
+#947
 sym_Sup05=subset(sym_rld_pvals_lfc, sym_lfc>0 & padj.SS_SF<0.05 & !is.na(sym_rld_pvals_lfc$padj.SS_SF))
 head(sym_Sup05)
 nrow(sym_Sup05)
-#678
+#674
 
 cleves <- read.delim("./Data_Files/Cleves_PNAS_NF-kB_BS.txt")
 head(cleves)
@@ -908,7 +908,7 @@ sym_cleves_means05 = apply(sym_cleves_names05, 1, mean)
 explc_sym_cleves05 = sym_cleves_names05-sym_cleves_means05
 
 callback = function(hc, mat){
-    sv = svd(t(mat))$v[,8]
+    sv = svd(t(mat))$v[,6]
     dend = reorder(as.dendrogram(hc), wts = sv)
     as.hclust(dend)
 }
@@ -1000,17 +1000,17 @@ head(res_SS_SF)
 # look at ALL DEGs
 apo_DEGs=row.names(res_AS_AF[res_AS_AF$padj<0.10 & !is.na(res_AS_AF$padj),])
 length(apo_DEGs)
-# 5946
+# 5940
 apo_DEGs05=row.names(res_AS_AF[res_AS_AF$padj<0.05 & !is.na(res_AS_AF$padj),])
 length(apo_DEGs05)
-# 4858
+# 4860
 
 sym_DEGs=row.names(res_SS_SF[res_SS_SF$padj<0.10 & !is.na(res_SS_SF$padj),])
 length(sym_DEGs)
-# 2278
+# 2274
 sym_DEGs05=row.names(res_SS_SF[res_SS_SF$padj<0.05 & !is.na(res_SS_SF$padj),])
 length(sym_DEGs05)
-# 1724
+# 1716
 
 candidates_all=list("Apo"=apo_DEGs, "Sym"=sym_DEGs)
 #head(candidates_all)
@@ -1046,7 +1046,7 @@ grid.draw(prettyvenn)
 apo_Sup05=subset(apo_rld_pvals_lfc, apo_lfc>0 & padj.AS_AF<0.05 & !is.na(apo_rld_pvals_lfc$padj.AS_AF))
 head(apo_Sup05)
 nrow(apo_Sup05)
-#2283
+#2285
 
 apo_Sdown05=subset(apo_rld_pvals_lfc, apo_lfc<0 & padj.AS_AF<0.05 & !is.na(apo_rld_pvals_lfc$padj.AS_AF))
 head(apo_Sdown05)
@@ -1056,12 +1056,12 @@ nrow(apo_Sdown05)
 sym_Sup05=subset(sym_rld_pvals_lfc, sym_lfc>0 & padj.SS_SF<0.05 & !is.na(sym_rld_pvals_lfc$padj.SS_SF))
 head(sym_Sup05)
 nrow(sym_Sup05)
-#678
+#674
 
 sym_Sdown05=subset(sym_rld_pvals_lfc, sym_lfc<0 & padj.SS_SF<0.05 & !is.na(sym_rld_pvals_lfc$padj.SS_SF))
 head(sym_Sdown05)
 nrow(sym_Sdown05)
-#1046
+#1042
 
 candidates_all05=list("Apo"=apo_DEGs05, "Sym"=sym_DEGs05)
 #head(candidates_all)
@@ -1110,6 +1110,8 @@ ggscatter(shared_both_lfc, x = "apo_lfc", y = "sym_lfc",
           add = "reg.line", conf.int = TRUE, 
           cor.coef = TRUE, cor.method = "pearson",
           xlab = "DEG LogFoldChange Aposymbiotic", ylab = "DEG LogFoldChange Symbiotic")+ theme(panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"))
+
+#saved as shared_DEGs05_correlation.pdf as landscape with 5x5
 #R=0.92, p<2.2e-16; there are only 10 genes that are different in apo and sym (5 that go up in apo and down in sym; 5 that go up in sym and down in apo)
 #let's pull out those 10 guys
 
@@ -1300,7 +1302,7 @@ ress_as_aa <- merge(aip_sym_goBP_1, aip_apo_goBP_1, by="name")
 # GO terms highly sig in both datasets
 sigs_as_aa=ress_as_aa[ress_as_aa$p.adj.x<=0.1 & ress_as_aa$p.adj.y<=0.1,]
 dim(sigs_as_aa)
-# 394 GO terms that are significant and shared between both by name
+# 397 GO terms that are significant and shared between both by name
 head(sigs_as_aa)
 write.table(sigs_as_aa, file="./Data_Files/sigs_as_aa_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
 sigs_as_aa <- read.table("./Data_Files/sigs_as_aa_GO_name.txt", header=T, sep="\t")
@@ -1313,7 +1315,7 @@ oc_goBP_2 <- oc_goBP[oc_goBP$name %in% goods_as_oc,]
 ress_as_oc <- merge(aip_sym_goBP_2, oc_goBP_2, by="name")
 sigs_as_oc=ress_as_oc[ress_as_oc$p.adj.x<=0.1 & ress_as_oc$p.adj.y<=0.1,]
 dim(sigs_as_oc)
-# 4
+# 5
 sigs_as_oc
 write.table(sigs_as_oc, file="./Data_Files/sigs_as_oc_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
 sigs_as_oc <- read.table("./Data_Files/sigs_as_oc_GO_name.txt", header=T, sep="\t")
@@ -1352,7 +1354,7 @@ nv_goBP_5 <- nv_goBP[nv_goBP$name %in% goods_aa_nv,]
 ress_aa_nv <- merge(aip_apo_goBP_5, nv_goBP_5, by="name")
 sigs_aa_nv=ress_aa_nv[ress_aa_nv$p.adj.x<=0.1 & ress_aa_nv$p.adj.y<=0.1,]
 dim(sigs_aa_nv)
-# 89
+# 87
 sigs_aa_nv
 write.table(sigs_aa_nv, file="./Data_Files/sigs_aa_nv_GO_name.txt", quote=F, sep="\t", row.names=FALSE)
 sigs_aa_nv <- read.table("./Data_Files/sigs_aa_nv_GO_name.txt", header=T, sep="\t")
@@ -1383,7 +1385,7 @@ apo <- distinct(apo, .keep_all=FALSE)
 colnames(apo) <- paste(c("GO_Group","Apo Aiptasia"))
 apo <- as.data.frame(apo)
 nrow(apo)
-#93
+#91
 
 sym_1 <- sigs_as_nv %>%
   select(name, delta.rank.x)
@@ -1394,7 +1396,7 @@ sym <- distinct(sym, .keep_all=FALSE)
 colnames(sym) <- paste(c("GO_Group","Sym Aiptasia")) 
 sym <- as.data.frame(sym)
 nrow(sym)
-#63
+#64
 
 nv_1 <- sigs_aa_nv %>%
   select(name, delta.rank.y)
@@ -1408,7 +1410,7 @@ nv <- distinct(nv, .keep_all = FALSE)
 colnames(nv) <- paste(c("GO_Group","Nematostella"))
 nv <- as.data.frame(nv)
 nrow(nv)
-#97
+#95
 
 oc_1 <- sigs_aa_oc %>%
   select(name, delta.rank.y)
@@ -1421,23 +1423,23 @@ oc <- distinct(oc, .keep_all = FALSE)
 colnames(oc) <- paste(c("GO_Group","Sym Oculina"))
 oc <- as.data.frame(oc)
 nrow(oc)
-#7
+#8
 
 apo_sym <- full_join(apo, sym)
 nrow(apo_sym)
-#101
+#100
 
 nv_apo_sym <- full_join(nv, apo_sym)
 nv_apo_sym_oc <- full_join(nv_apo_sym, oc)
 nrow(nv_apo_sym_oc)
-#102
+#101
 write.table(nv_apo_sym_oc, file="./Data_Files/GOdeltarank_all.txt", quote=F, sep="\t", row.names=FALSE)
 
 #use melt to change it to a long format
 melted <- melt(nv_apo_sym_oc)
 head(melted)
 nrow(melted)
-#408
+#404
 
 bubbleplot <- ggplot(melted, aes(x=variable, y=GO_Group, fill=factor(sign(value)), size=abs(value))) +
       geom_point(shape=21, color="black") +
@@ -1466,11 +1468,11 @@ In excel, I opened the file with all the terms and manually extracted all the te
 ```{r}
 starvation <- read.table("./Data_Files/GOdeltarank_starvation.txt", header=T, sep="\t")
 colnames(starvation) <- paste(c("GO_Group", "Nematostella", "Apo Aiptasia", "Sym Aiptasia", "Sym Oculina"))
-#starvation
-melted_starv <- melt(starvation)
+head(starvation)
+melted_starv <- melt(starvation, id.vars = "GO_Group")
 head(melted_starv)
 nrow(melted_starv)
-#156
+#148
 
 bubbleplot_s <- ggplot(melted_starv, aes(x=variable, y=GO_Group, fill=factor(sign(value)), size=abs(value))) +
       geom_point(shape=21, color="black") +
@@ -1502,7 +1504,7 @@ Did the same with all the terms that correspond explicitly to immunity, defense,
 defense <- read.table("./Data_Files/GOdeltarank_immune.txt", header=T, sep="\t")
 colnames(defense) <- paste(c("GO_Group", "Nematostella", "Apo Aiptasia", "Sym Aiptasia", "Sym Oculina"))
 #defense
-melted_defense <- melt(defense)
+melted_defense <- melt(defense, id.vars = "GO_Group")
 head(melted_defense)
 nrow(melted_defense)
 #24
@@ -1538,13 +1540,13 @@ Making sup tables: apo and sym GO BP terms that are significantly over or underr
 head(aip_apo_goBP)
 aip_apo_goBP_sig <- aip_apo_goBP[aip_apo_goBP$p.adj<=0.1,]
 nrow(aip_apo_goBP_sig)
-#795
+#796
 write.csv(aip_apo_goBP_sig, "./Data_Files/aip_apo_goBP_sig.csv", quote=F)
 
 head(aip_sym_goBP)
 aip_sym_goBP_sig <- aip_sym_goBP[aip_sym_goBP$p.adj<=0.1,]
 nrow(aip_sym_goBP_sig)
-#483
+#488
 write.csv(aip_sym_goBP_sig, "./Data_Files/aip_sym_goBP_sig.csv", quote=F)
 ```
 

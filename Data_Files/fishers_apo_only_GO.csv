@@ -150,7 +150,6 @@ isogroup10924,1
 isogroup10925,1
 isogroup1093,1
 isogroup10933,1
-isogroup10934,1
 isogroup10950,1
 isogroup10955,1
 isogroup10959,1
@@ -988,7 +987,6 @@ isogroup15467,1
 isogroup15468,1
 isogroup15471,1
 isogroup1548,1
-isogroup15481,1
 isogroup15482,1
 isogroup15483,1
 isogroup15484,1
@@ -1381,6 +1379,7 @@ isogroup17568,1
 isogroup17578,1
 isogroup1758,1
 isogroup17582,1
+isogroup17583,1
 isogroup17591,1
 isogroup17602,1
 isogroup17611,1
@@ -1751,6 +1750,7 @@ isogroup19659,1
 isogroup19661,1
 isogroup19666,1
 isogroup19672,1
+isogroup19685,1
 isogroup19689,1
 isogroup19693,1
 isogroup19709,1
@@ -1933,11 +1933,13 @@ isogroup20563,1
 isogroup20564,1
 isogroup20567,1
 isogroup20570,1
+isogroup20572,1
 isogroup20575,1
 isogroup20577,1
 isogroup20596,1
 isogroup20598,1
 isogroup20612,1
+isogroup20626,1
 isogroup20629,1
 isogroup2063,1
 isogroup20632,1
@@ -3611,6 +3613,7 @@ isogroup332,1
 isogroup3323,1
 isogroup3326,1
 isogroup334,1
+isogroup3344,1
 isogroup3345,1
 isogroup3347,1
 isogroup335,1
@@ -4661,7 +4664,6 @@ isogroup8864,1
 isogroup8869,1
 isogroup8879,1
 isogroup8886,1
-isogroup8887,1
 isogroup8889,1
 isogroup889,1
 isogroup8900,1
@@ -4989,7 +4991,6 @@ isogroup23521,0
 isogroup23665,0
 isogroup23765,0
 isogroup23816,0
-isogroup24289,0
 isogroup24476,0
 isogroup24649,0
 isogroup24751,0
@@ -5003,7 +5004,6 @@ isogroup25357,0
 isogroup25364,0
 isogroup2560,0
 isogroup26061,0
-isogroup26063,0
 isogroup26150,0
 isogroup26215,0
 isogroup2652,0
@@ -5043,7 +5043,6 @@ isogroup3277,0
 isogroup3285,0
 isogroup3376,0
 isogroup3379,0
-isogroup3544,0
 isogroup355,0
 isogroup3573,0
 isogroup3593,0
@@ -5070,6 +5069,7 @@ isogroup5349,0
 isogroup5370,0
 isogroup5383,0
 isogroup5460,0
+isogroup5550,0
 isogroup5654,0
 isogroup5655,0
 isogroup5871,0
@@ -7847,7 +7847,6 @@ isogroup3340,0
 isogroup3341,0
 isogroup3342,0
 isogroup3343,0
-isogroup3344,0
 isogroup3346,0
 isogroup3348,0
 isogroup3349,0
@@ -8003,6 +8002,7 @@ isogroup3539,0
 isogroup3541,0
 isogroup3542,0
 isogroup3543,0
+isogroup3544,0
 isogroup3545,0
 isogroup3547,0
 isogroup3548,0
@@ -9616,7 +9616,6 @@ isogroup5546,0
 isogroup5547,0
 isogroup5548,0
 isogroup5549,0
-isogroup5550,0
 isogroup5551,0
 isogroup5552,0
 isogroup5553,0
@@ -12378,6 +12377,7 @@ isogroup8882,0
 isogroup8883,0
 isogroup8884,0
 isogroup8885,0
+isogroup8887,0
 isogroup8888,0
 isogroup8890,0
 isogroup8891,0
@@ -14085,6 +14085,7 @@ isogroup10928,0
 isogroup10929,0
 isogroup10931,0
 isogroup10932,0
+isogroup10934,0
 isogroup10935,0
 isogroup10936,0
 isogroup10937,0
@@ -17852,6 +17853,7 @@ isogroup15477,0
 isogroup15478,0
 isogroup15479,0
 isogroup15480,0
+isogroup15481,0
 isogroup15486,0
 isogroup15488,0
 isogroup15489,0
@@ -19586,7 +19588,6 @@ isogroup17577,0
 isogroup17579,0
 isogroup17580,0
 isogroup17581,0
-isogroup17583,0
 isogroup17584,0
 isogroup17585,0
 isogroup17586,0
@@ -21346,7 +21347,6 @@ isogroup19681,0
 isogroup19682,0
 isogroup19683,0
 isogroup19684,0
-isogroup19685,0
 isogroup19686,0
 isogroup19687,0
 isogroup19688,0
@@ -22056,7 +22056,6 @@ isogroup20566,0
 isogroup20568,0
 isogroup20569,0
 isogroup20571,0
-isogroup20572,0
 isogroup20573,0
 isogroup20574,0
 isogroup20576,0
@@ -22105,7 +22104,6 @@ isogroup20622,0
 isogroup20623,0
 isogroup20624,0
 isogroup20625,0
-isogroup20626,0
 isogroup20627,0
 isogroup20630,0
 isogroup20631,0
@@ -25158,6 +25156,7 @@ isogroup24285,0
 isogroup24286,0
 isogroup24287,0
 isogroup24288,0
+isogroup24289,0
 isogroup24290,0
 isogroup24291,0
 isogroup24292,0
@@ -26615,6 +26614,7 @@ isogroup26056,0
 isogroup26057,0
 isogroup26058,0
 isogroup26059,0
+isogroup26063,0
 isogroup26064,0
 isogroup26065,0
 isogroup26066,0

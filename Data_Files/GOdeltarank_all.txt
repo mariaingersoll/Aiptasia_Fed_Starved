@@ -1,103 +1,102 @@
 GO_Group	Nematostella	Apo Aiptasia	Sym Aiptasia	Sym Oculina
-alpha-amino acid metabolic process	-397	-1241	-863	NA
-antigen processing and presentation	-635	-1720	-1129	NA
-antigen processing and presentation of peptide antigen via MHC class I	-967	-3665	-2506	NA
-ATP biosynthetic process	-1128	-4122	-1927	NA
-ATP synthesis coupled proton transport	-1491	-4630	NA	NA
-carbohydrate biosynthetic process	-677	-1151	-1210	NA
-carbohydrate catabolic process	-567	-1812	-1023	NA
-carbohydrate derivative biosynthetic process	-457	-1045	-529	NA
-carbohydrate metabolic process	-415	-1220	-765	NA
-cell cycle checkpoint	376	-981	NA	NA
-cellular aldehyde metabolic process	-763	-2828	-1676	NA
-cellular amide metabolic process	-326	-2121	-1077	NA
-cellular amino acid catabolic process	-616	-1091	-1229	NA
-cellular amino acid metabolic process	-524	-1484	-998	NA
-cellular response to DNA damage stimulus	255	-610	NA	NA
-cyclic nucleotide metabolic process	1115	2927	1697	NA
-defense response	-235	674	484	NA
-dicarboxylic acid metabolic process	-597	-1718	-977	NA
-DNA replication	614	418	NA	NA
-DNA strand elongation	1154	-2767	NA	NA
-electron transport chain	-920	-2846	NA	NA
-exocytosis	-427	765	NA	NA
-fatty acid biosynthetic process	-676	-1226	NA	NA
-fatty acid metabolic process	-488	-1275	-713	NA
-forebrain development	686	1433	NA	NA
-gene expression	-438	-1135	NA	NA
-generation of precursor metabolites and energy	-620	-1393	NA	NA
-glycosylation	-664	-637	NA	NA
+alpha-amino acid metabolic process	-397	-1238	-862	NA
+antigen processing and presentation	-635	-1718	-1129	NA
+antigen processing and presentation of peptide antigen via MHC class I	-967	-3662	-2504	NA
+ATP biosynthetic process	-1128	-4118	-1927	NA
+carbohydrate biosynthetic process	-677	-1150	-1210	NA
+carbohydrate catabolic process	-567	-1811	-1023	NA
+carbohydrate derivative biosynthetic process	-457	-1045	-530	NA
+carbohydrate metabolic process	-415	-1220	-762	NA
+cell cycle checkpoint	376	-983	NA	NA
+cellular aldehyde metabolic process	-763	-2827	-1675	NA
+cellular amide metabolic process	-326	-2119	-1077	NA
+cellular amino acid catabolic process	-616	-1087	-1226	NA
+cellular amino acid metabolic process	-524	-1482	-998	NA
+cellular response to DNA damage stimulus	255	-612	NA	NA
+cyclic nucleotide metabolic process	1115	2917	1694	NA
+defense response	-235	675	486	NA
+dicarboxylic acid metabolic process	-597	-1716	-977	NA
+DNA replication	614	414	NA	NA
+DNA strand elongation	1154	-2792	NA	NA
+electron transport chain	-920	-2843	NA	NA
+exocytosis	-427	767	NA	NA
+fatty acid biosynthetic process	-676	-1225	NA	NA
+fatty acid metabolic process	-488	-1271	-713	NA
+forebrain development	686	1436	NA	NA
+gene expression	-438	-1162	NA	NA
+generation of precursor metabolites and energy	-620	-1386	NA	NA
+glycosylation	-664	-632	NA	NA
 glyoxylate metabolic process	-1442	-2326	NA	NA
-immune response	-302	820	700	684
-intra-Golgi vesicle-mediated transport	-992	-2455	NA	NA
-ion homeostasis	-260	667	568	NA
-lipid biosynthetic process	-433	-933	NA	NA
-lipid catabolic process	-392	-1258	NA	NA
-lipid metabolic process	-438	-821	-289	NA
-lipid modification	-460	-1048	NA	NA
-locomotory behavior	412	1298	1108	NA
-methylation	404	-780	NA	NA
-monocarboxylic acid biosynthetic process	-743	-772	NA	NA
-monocarboxylic acid catabolic process	-514	-1963	-1056	NA
-monocarboxylic acid metabolic process	-525	-1342	-938	NA
-monosaccharide metabolic process	-468	-1996	-1364	NA
-mRNA metabolic process	415	-702	NA	NA
-muscle tissue morphogenesis	623	2492	NA	NA
-ncRNA metabolic process	501	-1058	-406	NA
-negative regulation of biosynthetic process	264	517	470	NA
-negative regulation of DNA-dependent DNA replication	1045	-3229	NA	NA
-negative regulation of nucleotide metabolic process	-1881	2700	NA	NA
-negative regulation of response to stimulus	-173	657	467	NA
-"nuclear-transcribed mRNA catabolic process, nonsense-mediated decay"	397	1379	1229	NA
-nucleobase-containing small molecule metabolic process	-364	-533	-307	NA
-nucleoside phosphate biosynthetic process	-522	-1122	-592	NA
-organic acid metabolic process	-514	-1427	-1003	NA
+immune response	-302	821	702	684
+intra-Golgi vesicle-mediated transport	-992	-2451	NA	NA
+ion homeostasis	-260	669	566	NA
+lipid biosynthetic process	-433	-934	NA	NA
+lipid catabolic process	-392	-1252	NA	NA
+lipid metabolic process	-438	-819	-289	NA
+lipid modification	-460	-1037	NA	NA
+locomotory behavior	412	1286	1117	NA
+methylation	404	-777	NA	NA
+monocarboxylic acid biosynthetic process	-743	-774	NA	NA
+monocarboxylic acid catabolic process	-514	-1952	-1048	NA
+monocarboxylic acid metabolic process	-525	-1339	-938	NA
+monosaccharide metabolic process	-468	-1994	-1363	NA
+mRNA metabolic process	415	-710	NA	NA
+muscle tissue morphogenesis	623	2493	NA	NA
+ncRNA metabolic process	501	-1057	-405	NA
+negative regulation of biosynthetic process	264	516	471	NA
+negative regulation of nucleotide metabolic process	-1881	2698	NA	NA
+negative regulation of response to stimulus	-173	660	467	NA
+"nuclear-transcribed mRNA catabolic process, nonsense-mediated decay"	397	1379	1228	NA
+nucleobase-containing small molecule metabolic process	-364	-533	-306	NA
+nucleoside phosphate biosynthetic process	-522	-1123	-592	NA
+organic acid metabolic process	-514	-1424	-1002	NA
 organonitrogen compound biosynthetic process	-294	-1037	-489	NA
-organonitrogen compound catabolic process	-280	-518	-475	NA
-organophosphate biosynthetic process	-368	-1048	NA	NA
-organophosphate metabolic process	-333	-619	-366	NA
-polysaccharide metabolic process	-501	-1109	-1198	NA
+organonitrogen compound catabolic process	-280	-517	-473	NA
+organophosphate biosynthetic process	-368	-1047	NA	NA
+organophosphate metabolic process	-333	-617	-365	NA
+polysaccharide metabolic process	-501	-1108	-1198	NA
 positive regulation of response to external stimulus	-427	1104	NA	NA
-protein folding	-465	-2953	-1650	NA
-protein N-linked glycosylation	-904	-1879	-1266	NA
-protein-DNA complex assembly	568	-2009	-1375	NA
-protein-DNA complex subunit organization	497	-1333	-809	NA
-proteolysis	-316	-513	-566	NA
-proteolysis involved in cellular protein catabolic process	-324	-1276	-590	NA
-pyruvate metabolic process	-604	-1712	-1212	NA
-reactive oxygen species metabolic process	-963	-1186	-1309	NA
-regulation of DNA replication	549	-1199	NA	NA
-regulation of DNA-dependent DNA replication	980	-2828	NA	NA
-regulation of immune response	-268	601	659	NA
-regulation of immune system process	-208	478	464	NA
-regulation of neuron migration	1954	3748	NA	NA
-regulation of ossification	-649	920	849	NA
-response to endogenous stimulus	-230	343	369	NA
-RNA processing	651	-818	-306	NA
-RNA splicing	669	-1022	NA	NA
-rRNA metabolic process	758	-928	NA	NA
-signal transduction involved in mitotic DNA damage checkpoint	-568	-1997	NA	NA
-skeletal muscle organ development	1548	3664	NA	NA
-small molecule biosynthetic process	-475	-1377	-600	NA
-small molecule catabolic process	-458	-1341	-1013	NA
-steroid metabolic process	-505	-754	NA	NA
-succinate metabolic process	-1774	-2739	NA	NA
-sulfur compound biosynthetic process	-598	-1692	-811	NA
-sulfur compound metabolic process	-444	-1678	-936	NA
-transition metal ion homeostasis	-867	-1506	NA	NA
-transition metal ion transport	-811	-1538	NA	NA
-translational initiation	395	-1970	-1027	NA
-tricarboxylic acid cycle	-1234	-2250	-1501	NA
+protein folding	-465	-2951	-1649	NA
+protein N-linked glycosylation	-904	-1872	-1255	NA
+protein-DNA complex assembly	568	-2008	-1375	NA
+protein-DNA complex subunit organization	497	-1332	-809	NA
+proteolysis	-316	-510	-567	NA
+proteolysis involved in cellular protein catabolic process	-324	-1273	-591	NA
+pyruvate metabolic process	-604	-1710	-1212	NA
+reactive oxygen species metabolic process	-963	-1185	-1308	NA
+regulation of DNA replication	549	-1197	NA	NA
+regulation of DNA-dependent DNA replication	980	-2825	NA	NA
+regulation of immune response	-268	611	667	NA
+regulation of immune system process	-208	484	468	NA
+regulation of neuron migration	1954	3747	NA	NA
+regulation of ossification	-649	920	846	NA
+response to endogenous stimulus	-230	347	367	NA
+RNA processing	651	-824	-307	NA
+RNA splicing	669	-1023	NA	NA
+rRNA metabolic process	758	-926	NA	NA
+signal transduction involved in mitotic DNA damage checkpoint	-568	-1995	NA	NA
+skeletal muscle organ development	1548	3663	NA	NA
+small molecule biosynthetic process	-475	-1376	-600	NA
+small molecule catabolic process	-458	-1336	-1010	NA
+steroid metabolic process	-505	-751	NA	NA
+succinate metabolic process	-1774	-2735	NA	NA
+sulfur compound biosynthetic process	-598	-1690	-811	NA
+sulfur compound metabolic process	-444	-1678	-937	NA
+transition metal ion homeostasis	-867	-1504	NA	NA
+transition metal ion transport	-811	-1536	NA	NA
+translational initiation	395	-1973	-1026	NA
+tricarboxylic acid cycle	-1234	-2249	-1500	NA
 amino sugar metabolic process	-980	NA	-1351	NA
-aromatic amino acid family catabolic process	-1223	NA	-2362	NA
-chemical homeostasis	-259	NA	536	NA
-covalent chromatin modification	530	NA	496	NA
-membrane organization	-243	NA	-433	NA
-peptidyl-lysine modification	417	NA	835	NA
+aromatic amino acid family catabolic process	-1223	NA	-2347	NA
+chemical homeostasis	-259	NA	535	NA
+covalent chromatin modification	530	NA	497	NA
+membrane organization	-243	NA	-434	NA
+peptidyl-lysine modification	417	NA	836	NA
 RNA biosynthetic process	334	NA	448	NA
 axonemal dynein complex assembly	1111	NA	NA	2420
-anatomical structure formation involved in morphogenesis	NA	512	NA	568
-anatomical structure morphogenesis	NA	833	591	425
-microtubule-based movement	NA	661	630	976
-peptide biosynthetic process	NA	-1622	NA	-1005
-cilium movement	NA	NA	1451	1903
+anatomical structure formation involved in morphogenesis	NA	513	NA	568
+anatomical structure morphogenesis	NA	834	591	425
+microtubule-based movement	NA	662	633	976
+peptide biosynthetic process	NA	-1621	NA	-1005
+cilium movement	NA	NA	1448	1903
+microtubule-based process	NA	NA	346	553
