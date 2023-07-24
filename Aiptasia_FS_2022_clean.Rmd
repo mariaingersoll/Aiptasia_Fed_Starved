@@ -404,7 +404,7 @@ pca_plot <- ggplot(pca_s, aes(PC1, PC2, color = Nutrition_Status, pch = Sym_Stat
         legend.title= element_blank(),
         legend.text.align = 0,
         legend.key.size=unit(10,"point"))
-pca_plot # saved as landscape with 6x4 as pca_012223.pdf in Figures
+pca_plot # saved as portrait with 4x3 as pca_012223.pdf in Figures
 
 install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
 library(pairwiseAdonis)
@@ -1093,7 +1093,7 @@ grid.draw(prettyvenn05)
 #saved as venn05_062823.pdf as landscape with 6x6 dimensions in Figures
 ```
 
-Looking at the shared 1466 degs, seeing if they go in the same direction in apo and sym
+Looking at the shared 1460 degs, seeing if they go in the same direction in apo and sym
 ```{r}
 intersect05 <- intersect(apo_DEGs05, sym_DEGs05)
 shared_apo <- as.data.frame(res_AS_AF)[rownames(res_AS_AF) %in% intersect05, ] %>% select(log2FoldChange)
@@ -1472,7 +1472,7 @@ head(starvation)
 melted_starv <- melt(starvation, id.vars = "GO_Group")
 head(melted_starv)
 nrow(melted_starv)
-#148
+#164
 
 bubbleplot_s <- ggplot(melted_starv, aes(x=variable, y=GO_Group, fill=factor(sign(value)), size=abs(value))) +
       geom_point(shape=21, color="black") +
@@ -1533,6 +1533,13 @@ bubbleplot_d <- ggplot(melted_defense, aes(x=variable, y=GO_Group, fill=factor(s
 bubbleplot_d
 #saved as bubbleplot_def_GOdeltarank as landscape 6.5x3 in Figures
 ```
+Trying to make those two graphs into one fig
+```{r}
+figure <- ggarrange(bubbleplot_s, bubbleplot_d,
+                    ncol = 1, nrow = 2, common.legend = TRUE, legend="right", heights=c(3,1))
+
+#saved as bubbleplot_starv_deg_072323 as portrait with 9x6.5
+```
 
 
 Making sup tables: apo and sym GO BP terms that are significantly over or underrepresented then highlighting the ones I used for downstream analysis
@@ -1585,7 +1592,7 @@ total_h2o2 <- ggsurvplot(total_sfit_h2o2, data=total_h2o2_survfit_input, alpha=0
         legend.text.align = 0),
         legend.key.size=unit(10,"point"))
 total_h2o2
-#saved as total_h2o2_survplot_050923.pdf as landscape with 6x4 dim in Figures
+#saved as total_h2o2_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 #separate out each comparison, did not use these figures in the final manuscript, but the code is here for reference
 #SF to SS
@@ -1713,7 +1720,7 @@ total_pa14 <- ggsurvplot(total_sfit_pa14, data=total_pa14_survfit_input, alpha=0
         legend.key.size=unit(10,"point"))
 
 total_pa14
-#saved as total_pa14_survplot_050923.pdf as landscape with 6x4 dim in Figures
+#saved as total_pa14_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 
 

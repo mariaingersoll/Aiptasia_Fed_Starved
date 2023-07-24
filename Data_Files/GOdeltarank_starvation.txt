@@ -35,4 +35,8 @@ carbohydrate metabolic process	-415	-1220	-762	NA
 carbohydrate derivative biosynthetic process	-457	-1045	-530	NA
 carbohydrate catabolic process	-567	-1811	-1023	NA
 carbohydrate biosynthetic process	-677	-1150	-1210	NA
+peptide biosynthetic process	NA	-1621	NA	-1005
+RNA biosynthetic process	334	NA	448	NA
+aromatic amino acid family catabolic process	-1223	NA	-2347	NA
+amino sugar metabolic process	-980	NA	-1351	NA
 alpha-amino acid metabolic process	-397	-1238	-862	NA
