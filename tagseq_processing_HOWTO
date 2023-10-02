@@ -4,7 +4,7 @@ Tag-based RNA-seq reads processing pipeline, version December 29, 2017
 #More info on the packages we will be using
 #fastx_toolkit: http://hannonlab.cshl.edu/fastx_toolkit/download.html
 #bowtie2: http://bowtie-bio.sourceforge.net/index.shtml 
-#pipeline came from https://github.com/z0on/tag-based_RNAseq - check it out for additional analyses etc
+#pipeline came from https://github.com/z0on/tag-based_RNAseq - check it out for additional analyses and for custom commands used here
 
 
 #-----------------------GRABBING DATA AND SCRIPTS
