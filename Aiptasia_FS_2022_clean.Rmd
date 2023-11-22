@@ -31,6 +31,7 @@ install.packages("survival")
 install.packages("survminer",dependencies=T)
 install.packages("cmprsk")
 install.packages("car")
+install.packages("Hmisc")
 
 
 library("DESeq2")                   
@@ -56,6 +57,7 @@ library("survival")
 library("survminer")
 library("cmprsk")
 library("car")
+library("Hmisc")
 ```
 
 
@@ -375,20 +377,24 @@ pca_s$anemones = c("A1F", "A1S", "A2F", "A2S", "A3F", "A3S", "A4F", "A4S", "A5F"
 pca_s$treat=allData$treat
 pca_s$Sym_Status=allData$symstat
 pca_s$Nutrition_Status=allData$food
+pca_s$Clone = c("A1", "A1", "A2", "A2", "A3", "A3", "A4", "A4", "A5", "A5", "S1", "S1", "S2", "S2", "S3", "S3", "S4", "S4", "S5", "S5")
+
 head(pca_s)
 ```
 
 Creating your PCA plots
 ```{r}
 food_color= c("gray50","purple")
-sym_shape = c(1,19)
+fill_color=c("white","white","gray50","purple")
+sym_shape = c(21,22,23,24,25,21,22,23,24,25)
 
 
-pca_plot <- ggplot(pca_s, aes(PC1, PC2, color = Nutrition_Status, pch = Sym_Status, group=treat)) +
-  geom_point(size=3) +
+pca_plot <- ggplot(pca_s, aes(PC1, PC2, color = Nutrition_Status, fill=treat, pch = Clone, group=treat)) +
+  geom_point(size=2) +
   #  geom_text_repel(aes(label=Samples)) +
   scale_colour_manual(values=food_color)+
-  scale_shape_manual(values=sym_shape) +
+  scale_fill_manual(values=fill_color, guide=NULL)+
+  scale_shape_manual(values=sym_shape, guide=guide_legend(override.aes = list(fill=list("white","white","white","white","white","black","black","black","black","black")))) +
   stat_ellipse()+
   labs(color="Feeding State", pch="Symbiosis State")+
   xlab(paste0("PC1: ",pc1v,"% variance")) +
@@ -436,7 +442,7 @@ pairwise.adonis2(pca$x ~ treat, data = pca_s, method='eu', na.rm = TRUE)
 Plasticity using Colleen's code: https://github.com/seabove7/RandomFun/blob/main/Plasticity_function/PlasticityFun_example.R
 
 Source the function then run plast function on your data
-- po starved vs apo fed and sym starved vs sym fed with the fed as the control
+- do starved vs apo fed and sym starved vs sym fed with the fed as the control
 ```{r}
 source("https://raw.githubusercontent.com/seabove7/RandomFun/main/Plasticity_function/PCAplast_function.R")
 
@@ -447,6 +453,7 @@ pca_df_plast <- prcomp(rld_plast_t, center=TRUE)
 
 head(allData)
 allData_2 <- remove_rownames(allData)
+allData_2$Clone <- pca_s$Clone
 allData_2 <- column_to_rownames(allData_2, var="anemones")
 head(allData_2)
 
@@ -461,7 +468,7 @@ plast_out_all <- PCAplast(pca = pca_df_plast, # the PCA dataframe containing the
          sample_ID = "X", # the name of column that provide unique ID per sample (if blank, will pull rownames for this)
         num_pca =  2, # the number of PCAs to include in analysis (default is 'all', but you can specify another number with a minimum of 2 PCAs)
          control_lvl = "F", # control level of the treatment. If blank, a control mean per control level is assumed
-         group = "symstat", # the grouping column (i.e., colony). If blank, will assume control level grouping only!
+         group = "Clone", # the grouping column (i.e., colony). If blank, will assume control level grouping only! was "symstat" in first submission; changed to Clone here
          control_col = "food") # what the 'treatment' column is called
 
 plast_out_all
@@ -471,15 +478,16 @@ Now visualize the dist values
 ```{r}
 plast_col = c("white", "purple")
 
-plast_plot <- ggplot(data = plast_out_all, aes(x = treat, y = dist)) + 
-  geom_point(shape=21, color="purple", stroke=1, position = position_jitter(width = 0.1),aes(fill=symstat)) +
-  stat_summary(fun.data = mean_sdl, fun.args = list(mult = 1), geom = "errorbar", width = 0, colour = "black") +
+plast_plot <- ggplot(data = plast_out_all, aes(x = treat, y = dist, pch=Clone, group=treat)) + 
+  geom_point(color="purple", stroke=1, position = position_jitter(width = 0.1),aes(fill=symstat)) +
+ stat_summary(fun.data = "mean_sdl", fun.args = list(mult = 1), geom = "errorbar", width = 0, colour = c("black")) +
   stat_summary(fun = "mean", size = 0.8, shape=21, colour = "black", fill="gray") +
-  scale_fill_manual(values=plast_col)+
+  scale_fill_manual(values=plast_col, guide=NULL)+
+  scale_shape_manual(values=sym_shape, guide=guide_legend(override.aes = list(fill=list("white","white","white","white","white","purple","purple","purple","purple","purple")))) +
   ylim(0,60)+
   ylab("Plasticity")+
   xlab("Treatment")+
-  labs(fill="Symbiosis State")+
+  #labs(fill="Symbiosis State")+
   theme(panel.background = element_rect(color="black", fill="white"),
         axis.text = element_text(colour="black", size=10), 
         axis.title.x = ggtext::element_markdown(face="bold", size=12),
@@ -500,8 +508,10 @@ plast_aov <- aov(dist~symstat, data=plast_out_all)
 summary(plast_aov)
 
 #            Df Sum Sq Mean Sq F value   Pr(>F)    
-#symstat      1 1096.5  1096.5    78.8 2.05e-05 ***
-#Residuals    8  111.4    13.9  
+#symstat      1 1092.7  1092.7   38.24 0.000264 ***
+#Residuals    8  228.6    28.6                     
+#---
+#Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 ####test assumptions for aov
 
@@ -510,9 +520,9 @@ plot(plast_aov, 1)
 #three outliers
 #so check their significance as outliers
 leveneTest(dist ~ symstat, data = plast_out_all)
-#  Df F value Pr(>F)
-#group  1  2.2826 0.1697
-#       8     
+#      Df F value Pr(>F)
+#group  1  0.8978 0.3711
+#       8                 
 #From leveneTest we can see that the p-value is not less than the significance level of 0.05. This means that there is no evidence to suggest that the variance across groups is statistically significantly different. Therefore, we can assume the homogeneity of variances in the different treatment groups.
 
 #check normality
@@ -523,7 +533,7 @@ aov_residuals <- residuals(object = plast_aov)
 shapiro.test(x = aov_residuals )
 #Shapiro-Wilk normality test
 #data:  aov_residuals
-#W = 0.90439, p-value = 0.2449
+#W = 0.90677, p-value = 0.2595
 
 #normality is not violated
 ```
