@@ -32,7 +32,7 @@ install.packages("survminer",dependencies=T)
 install.packages("cmprsk")
 install.packages("car")
 install.packages("Hmisc")
-
+install.packages("coxme")
 
 library("DESeq2")                   
 library("arrayQualityMetrics")      
@@ -58,6 +58,7 @@ library("survminer")
 library("cmprsk")
 library("car")
 library("Hmisc")
+library("coxme")
 ```
 
 
@@ -1576,7 +1577,7 @@ Making survival curves
 - Input files have 1=alive and 2=dead in the Mortality column; Day column has the day at which death occurred or 14 for surviving the whole thing
 
 #Making survival curves
-- Input files have 1=alive and 2=dead in the Mortality column; Day column has the day at which death occurred or 14 for surviving the whole thing
+- Input files have 1=alive and 2=dead in the Mortality column; Day column has the day at which death occurred or 28 for surviving the whole thing
 - Directionality is based off direction of coef... positive means more likely to happen because hazard is higher in that state, negative is less likely to happen because hazard is lower in that state
 - first run the coxph by Treat with the current levels (AF AS SF SS); it will compare everything to AF because it goes alphapetically. So what you're interested in is the AS result (AF to AS) and the SF result (AF to SF). Then you will relevel to make AS the "base" and you will be interested in the SS result (AS to SS). Then do one final relevel to make SF the "base" and you will be interested in the SS result (SS to SF)
 
@@ -1679,40 +1680,65 @@ h2o2_asss <- ggsurvplot(total_sfit_h2o2_asss, data=total_h2o2_survfit_input_asss
 
 total_h2o2_input$Treat=factor(total_h2o2_input$Treat,levels=c("AF","AS","SF","SS"))
 
-total_cox_h2o2_1 <- coxph(Surv(time = total_h2o2_input$Day, event = total_h2o2_input$Mortality) ~ Treat, cluster=Treat, data=total_h2o2_input)
+total_cox_h2o2_1 <- coxph(Surv(time = total_h2o2_input$Day, event = total_h2o2_input$Mortality) ~ Treat+frailty(factor(total_h2o2_input$trial)), cluster=Treat, data=total_h2o2_input)
 summary(total_cox_h2o2_1)
 #TO AF
-#              coef  exp(coef)   se(coef)  robust se      z Pr(>|z|)    
-#TreatAS  3.970994 53.037228  0.727166  0.202410  19.62   <2e-16 ***
-#TreatSF  1.531727  4.626158  0.781780  0.009887 154.93   <2e-16 ***
-#TreatSS  4.040864 56.875480  0.726589  0.156466  25.83   <2e-16 ***
+#                           coef  se(coef) se2    Chisq   DF p       
+#TreatAS                   3.971 0.202412 0.7272   384.9 1   1.1e-85
+#TreatSF                   1.532 0.009887 0.7818 24002.5 1   0.0e+00
+#TreatSS                   4.041 0.156465 0.7266   667.0 1  4.5e-147
+#frailty(factor(total_h2o2                           0.3 0   3.3e-01
+#Likelihood ratio test= 147  on 3 df,   p=<2e-16
 
 total_h2o2_input$Treat <- relevel(total_h2o2_input$Treat, "AS")
-total_cox_h2o2_2 <- coxph(Surv(time = total_h2o2_input$Day, event = total_h2o2_input$Mortality) ~ Treat, cluster=Treat, data=total_h2o2_input)
+total_cox_h2o2_2 <- coxph(Surv(time = total_h2o2_input$Day, event = total_h2o2_input$Mortality) ~ Treat+frailty(factor(total_h2o2_input$trial)), cluster=Treat, data=total_h2o2_input)
 summary(total_cox_h2o2_2)
 # TO AS 
-#coef  exp(coef)   se(coef)  robust se       z Pr(>|z|)    
-#TreatAF -3.97099   0.01885  0.72717   0.20241 -19.619   <2e-16 ***
-#TreatSF -2.43927   0.08722  0.37276   0.19340 -12.612   <2e-16 ***
-#TreatSS  0.06987   1.07237  0.21986   0.05340   1.308    0.191    
+#                          coef     se(coef) se2    Chisq  DF p      
+#TreatAF                   -3.97100 0.2024   0.7272 384.88 1  1.1e-85
+#TreatSF                   -2.43927 0.1934   0.3728 159.07 1  1.8e-36
+#TreatSS                    0.06987 0.0534   0.2199   1.71 1  1.9e-01
+#frailty(factor(total_h2o2                            0.30 0  3.3e-01
+#Likelihood ratio test= 147  on 3 df,   p=<2e-16
 
 total_h2o2_input$Treat <- relevel(total_h2o2_input$Treat, "SF")
-total_cox_h2o2_3 <- coxph(Surv(time = total_h2o2_input$Day, event = total_h2o2_input$Mortality) ~ Treat, cluster=Treat, data=total_h2o2_input)
+total_cox_h2o2_3 <- coxph(Surv(time = total_h2o2_input$Day, event = total_h2o2_input$Mortality) ~ Treat+frailty(factor(total_h2o2_input$trial)), cluster=Treat, data=total_h2o2_input)
 summary(total_cox_h2o2_3)
 # TO SF
-#             coef exp(coef)  se(coef) robust se     z Pr(>|z|)    
-#TreatAS  2.439267 11.464639  0.372757  0.193402   12.61   <2e-16 ***
-#TreatAF -1.531727  0.216162  0.781780  0.009887 -154.93   <2e-16 ***
-#TreatSS  2.509138 12.294324  0.372239  0.148186   16.93   <2e-16 ***
+#                             coef   se(coef) se2    Chisq   DF p      
+#TreatAS                    2.439 0.193404 0.3728   159.1 1  1.8e-36
+#TreatAF                   -1.532 0.009887 0.7818 24002.5 1  0.0e+00
+#TreatSS                    2.509 0.148185 0.3722   286.7 1  2.6e-64
+#frailty(factor(total_h2o2                            0.3 0  3.3e-01
+#Likelihood ratio test= 147  on 3 df,   p=<2e-16
+
+total_h2o2_input$Treat <- relevel(total_h2o2_input$Treat, "SS")
+total_cox_h2o2_4 <- coxph(Surv(time = total_h2o2_input$Day, event = total_h2o2_input$Mortality) ~ Treat+frailty(factor(total_h2o2_input$trial)), cluster=Treat, data=total_h2o2_input)
+summary(total_cox_h2o2_4)
+# TO SS
+#                         coef     se(coef) se2    Chisq  DF p       
+#TreatSF                   -2.50914 0.1482   0.3722 286.71 1   2.6e-64
+#TreatAS                   -0.06987 0.0534   0.2199   1.71 1   1.9e-01
+#TreatAF                   -4.04086 0.1565   0.7266 666.98 1  4.5e-147
+#frailty(factor(total_h2o2                            0.30 0   3.3e-01
+#Likelihood ratio test= 147  on 3 df,   p=<2e-16
 
 ### Relevel back to AF
 total_h2o2_input$Treat <- relevel(total_h2o2_input$Treat, "AF")
+
+#bonferroni p-adj value is 4*p-value
+#AF to AS is 4.4e-85
+#SF to SS is 1.04e-63
 ```
 
 Pa14
 ```{r}
+install.packages("emmeans")
+library("emmeans")
+
 total_pa14_input <- read.table("./Data_Files/r1r2_pa14_survfit_input.txt", header=T)
-total_pa14_survfit_input<- total_pa14_input[,1:3]
+#no control
+total_pa14_survfit_input<- total_pa14_input[1:192,1:3]
 head(total_pa14_survfit_input)
 total_sfit_pa14 <- survfit(Surv(Day, Mortality)~Treat, data=total_pa14_survfit_input)
 summary(total_sfit_pa14)$table
@@ -1732,7 +1758,27 @@ total_pa14 <- ggsurvplot(total_sfit_pa14, data=total_pa14_survfit_input, alpha=0
 total_pa14
 #saved as total_pa14_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
-
+#now make a plot that includes the control line
+total_pa14_survfit_input_ctrl<- total_pa14_input[,1:3]
+tail(total_pa14_survfit_input_ctrl)
+total_pa14_survfit_input_ctrl<- total_pa14_survfit_input_ctrl %>%
+  mutate(Treat=factor(Treat, levels=c("AF", "AS", "SF", "SS", "CA", "CS")))
+total_sfit_pa14_ctrl <- survfit(Surv(Day, Mortality)~Treat, data=total_pa14_survfit_input_ctrl)
+summary(total_sfit_pa14_ctrl)$table
+total_pa14_ctrl <- ggsurvplot(total_sfit_pa14_ctrl, data=total_pa14_survfit_input_ctrl, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoFed","ApoStarved","SymFed","SymStarved","ControlApo","ControlSym"),
+           palette=c("gray50", "purple", "gray50", "purple", "black", "black"), linetype = c("twodash", "twodash", "solid", "solid", "twodash", "solid"), xlab="Days Post Pa14 Infection", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+total_pa14_ctrl
+#saved as total_pa14_survplot_ctrl_112623.pdf as landscape with 5x3 dim in Figures
 
 #separate out each comparison, again, didn't use in manuscript but still here
 #SF to SS
@@ -1807,42 +1853,87 @@ pa14_asss <- ggsurvplot(total_sfit_pa14_asss, data=total_pa14_survfit_input_asss
         legend.key.size=unit(10,"point"))
 #saved as asss_pa14_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
-total_pa14_input$Treat=factor(total_pa14_input$Treat,levels=c("AF","AS","SF","SS"))
+#total_pa14_input$Treat=factor(total_pa14_input$Treat,levels=c("AF","AS","SF","SS"))
+#model with controls
+total_pa14_input$Treat=factor(total_pa14_input$Treat,levels=c("AF","AS","SF","SS","CA","CS"))
 
-total_cox_pa14_1 <- coxph(Surv(time = total_pa14_input$Day, event = total_pa14_input$Mortality) ~ Treat, cluster=Treat, data=total_pa14_input)
+total_cox_pa14_1 <- coxph(Surv(time = total_pa14_input$Day, event = total_pa14_input$Mortality) ~ Treat+frailty(factor(total_pa14_input$trial)), cluster=Treat, data=total_pa14_input)
 summary(total_cox_pa14_1)
 #TO AF
-#            coef exp(coef) se(coef) robust se     z Pr(>|z|)    
-#TreatAS  2.02111   7.54668  0.25105   0.38609   5.235 1.65e-07 ***
-#TreatSF  0.91021   2.48484  0.23001   0.29132   3.124  0.00178 ** 
-#TreatSS -0.37527   0.68710  0.21184   0.01325 -28.330  < 2e-16 ***
+#                           coef     se(coef) se2       Chisq  DF p       
+#TreatAS                     2.0211 0.38610     0.2510  27.40 1   1.7e-07
+#TreatSF                     0.9102 0.29132     0.2300   9.76 1   1.8e-03
+#TreatSS                    -0.3753 0.01325     0.2118 802.67 1  1.4e-176
+#TreatCA                   -21.8398 1.01154  9321.8812 466.16 1  2.2e-103
+#TreatCS                   -21.8398 1.01154  9321.8812 466.16 1  2.2e-103
+#frailty(factor(total_pa14                               0.17 0   4.1e-01
+#Likelihood ratio test= 204.1  on 2 df,   p=<2e-16
+
+#total_cox_pa14_1_coxme <- coxme(Surv(time = total_pa14_input$Day, event = total_pa14_input$Mortality) ~ total_pa14_input$Treat+(1|total_pa14_input$trial), data=total_pa14_input)
+#anova(total_cox_pa14_1,total_cox_pa14_1_coxme)
+
+#use emmeans to control for multiple pairwise comparisons (would only work if we were accounting for the random effect in a different way and not through the frailty)
+#emms<-emmeans(total_cox_pa14_1, ~Treat, adjust="Sidak")
+#pairs(emms, interaction = "pairwise") %>% rbind(adjust="Sidak")
+
 
 total_pa14_input$Treat <- relevel(total_pa14_input$Treat, "AS")
-total_cox_pa14_2 <- coxph(Surv(time = total_pa14_input$Day, event = total_pa14_input$Mortality) ~ Treat, cluster=Treat, data=total_pa14_input)
+total_cox_pa14_2 <- coxph(Surv(time = total_pa14_input$Day, event = total_pa14_input$Mortality) ~ Treat+frailty(factor(total_pa14_input$trial)), cluster=Treat, data=total_pa14_input)
 summary(total_cox_pa14_2)
 # TO AS 
-#            coef exp(coef) se(coef) robust se      z Pr(>|z|)    
-#TreatAF -2.02111   0.13251  0.25105   0.38609  -5.235 1.65e-07 ***
-#TreatSF -1.11090   0.32926  0.21938   0.09596 -11.576  < 2e-16 ***
-#TreatSS -2.39638   0.09105  0.25179   0.38549  -6.216 5.09e-10 ***
+#                           coef    se(coef) se2       Chisq  DF p      
+#TreatAF                    -2.021 0.38610     0.2510  27.40 1  1.7e-07
+#TreatSF                    -1.111 0.09596     0.2194 134.01 1  5.4e-31
+#TreatSS                    -2.396 0.38549     0.2518  38.64 1  5.1e-10
+#TreatCA                   -23.861 1.13539  9321.8812 441.66 1  4.7e-98
+#TreatCS                   -23.861 1.13539  9321.8812 441.66 1  4.7e-98
+#frailty(factor(total_pa14                              0.17 0  4.1e-01
+#Likelihood ratio test= 204.1  on 2 df,   p=<2e-16
+
 
 total_pa14_input$Treat <- relevel(total_pa14_input$Treat, "SF")
-total_cox_pa14_3 <- coxph(Surv(time = total_pa14_input$Day, event = total_pa14_input$Mortality) ~ Treat, cluster=Treat, data=total_pa14_input)
+total_cox_pa14_3 <- coxph(Surv(time = total_pa14_input$Day, event = total_pa14_input$Mortality) ~ Treat+frailty(factor(total_pa14_input$trial)), cluster=Treat, data=total_pa14_input)
 summary(total_cox_pa14_3)
 # TO SF
-#          coef exp(coef) se(coef) robust se      z Pr(>|z|)    
-#TreatAS  1.11090   3.03709  0.21938   0.09596 11.576  < 2e-16 ***
-#TreatAF -0.91021   0.40244  0.23001   0.29132 -3.124  0.00178 ** 
-#TreatSS -1.28548   0.27652  0.22556   0.29020 -4.430 9.44e-06 ***
+#                          coef     se(coef) se2       Chisq  DF p      
+#TreatAS                     1.1109 0.09596     0.2194 134.01 1  5.4e-31
+#TreatAF                    -0.9102 0.29132     0.2300   9.76 1  1.8e-03
+#TreatSS                    -1.2855 0.29020     0.2256  19.62 1  9.4e-06
+#TreatCA                   -22.7500 1.09389  9321.8812 432.53 1  4.6e-96
+#TreatCS                   -22.7500 1.09389  9321.8812 432.53 1  4.6e-96
+#frailty(factor(total_pa14                               0.17 0  4.1e-01
+#Likelihood ratio test= 204.1  on 2 df,   p=<2e-16
+
+total_pa14_input$Treat <- relevel(total_pa14_input$Treat, "SS")
+total_cox_pa14_4 <- coxph(Surv(time = total_pa14_input$Day, event = total_pa14_input$Mortality) ~ Treat+frailty(factor(total_pa14_input$trial)), cluster=Treat, data=total_pa14_input)
+summary(total_cox_pa14_4)
+#TO SS
+#                         coef     se(coef) se2       Chisq  DF p       
+#TreatSF                     1.2855 0.29020     0.2256  19.62 1   9.4e-06
+#TreatAS                     2.3964 0.38549     0.2518  38.64 1   5.1e-10
+#TreatAF                     0.3753 0.01325     0.2118 802.67 1  1.4e-176
+#TreatCA                   -21.4646 1.01198  9321.8812 449.88 1  7.6e-100
+#TreatCS                   -21.4646 1.01198  9321.8812 449.88 1  7.6e-100
+#frailty(factor(total_pa14                               0.17 0   4.1e-01
+#Likelihood ratio test= 204.1  on 2 df,   p=<2e-16
 
 ### Relevel back to AF
 total_pa14_input$Treat <- relevel(total_pa14_input$Treat, "AF")
+
+#bonferroni p-adj value is 4*p-value
+#AF to AS is 6.8e-07
+#AF to SF is 0.0072
+#AF to SS is 5.6e-176
+#AS to SF is 2.16e-30
+#AS to SS is 2.04e-09
+#SF to SS is 3.76e-05
 ```
 
 Smarc
 ```{r}
 total_smarc_input <- read.table("./Data_Files/r1r2_smarc_survfit_input.txt", header=T)
-total_smarc_survfit_input<- total_smarc_input[,1:3]
+#no controls
+total_smarc_survfit_input<- total_smarc_input[1:192,1:3]
 head(total_smarc_survfit_input)
 total_sfit_smarc <- survfit(Surv(Day, Mortality)~Treat, data=total_smarc_survfit_input)
 summary(total_sfit_smarc)$table
@@ -1860,7 +1951,29 @@ total_smarc <- ggsurvplot(total_sfit_smarc, data=total_smarc_survfit_input, alph
         legend.key.size=unit(10,"point"))
 
 total_smarc
-#saved as total_smarc_survplot_050923.pdf as landscape with 6x4 dim in Figures
+#saved as total_smarc_survplot_050923.pdf as landscape with 5x3 dim in Figures
+
+#now make a plot that includes the control line
+total_smarc_survfit_input_ctrl<- total_smarc_input[,1:3]
+tail(total_smarc_survfit_input_ctrl)
+total_smarc_survfit_input_ctrl<- total_smarc_survfit_input_ctrl %>%
+  mutate(Treat=factor(Treat, levels=c("AF", "AS", "SF", "SS", "CA", "CS")))
+total_sfit_smarc_ctrl <- survfit(Surv(Day, Mortality)~Treat, data=total_smarc_survfit_input_ctrl)
+summary(total_sfit_smarc_ctrl)$table
+total_smarc_ctrl <- ggsurvplot(total_sfit_smarc_ctrl, data=total_smarc_survfit_input_ctrl, alpha=0.6, size=1, censor.size=0, legend.labs=c("ApoFed","ApoStarved","SymFed","SymStarved","ControlApo","ControlSym"),
+           palette=c("gray50", "purple", "gray50", "purple", "black", "black"), linetype = c("twodash", "twodash", "solid", "solid", "twodash", "solid"), xlab="Days Post Smarc Infection", ggtheme=theme(panel.background = element_rect(color="black", fill="white"),
+        axis.text = element_text(colour="black", size=10), 
+        axis.title.x = ggtext::element_markdown(face="bold", size=12),
+        axis.title.y = ggtext::element_markdown(face="bold",size=12),
+        panel.grid.major = element_line(colour = "gray80", linewidth = 0.5, linetype="dotted"),
+        legend.position="right",
+        legend.background=element_rect(color="black"),
+        legend.text=element_text(face="bold", color="black", size=8),
+        legend.title= element_blank(),
+        legend.text.align = 0),
+        legend.key.size=unit(10,"point"))
+total_smarc_ctrl
+#saved as total_smarc_survplot_ctrl_112623.pdf as landscape with 5x3 dim in Figures
 
 #separate out each comparison, didn't use in manuscript but here for reference
 #SF to SS
@@ -1936,36 +2049,72 @@ smarc_asss <- ggsurvplot(total_sfit_smarc_asss, data=total_smarc_survfit_input_a
 #saved as asss_smarc_survplot_050923.pdf as landscape with 5x3 dim in Figures
 
 
-total_smarc_input$Treat=factor(total_smarc_input$Treat,levels=c("AF","AS","SF","SS"))
+#total_smarc_input$Treat=factor(total_smarc_input$Treat,levels=c("AF","AS","SF","SS"))
+#add in control
+total_smarc_input$Treat=factor(total_smarc_input$Treat,levels=c("AF","AS","SF","SS","CA","CS"))
 
-total_cox_smarc_1 <- coxph(Surv(time = total_smarc_input$Day, event = total_smarc_input$Mortality) ~ Treat, cluster=Treat, data=total_smarc_input)
+total_cox_smarc_1 <- coxph(Surv(time = total_smarc_input$Day, event = total_smarc_input$Mortality) ~ Treat+frailty(factor(total_smarc_input$trial)), cluster=Treat, data=total_smarc_input)
 summary(total_cox_smarc_1)
 #TO AF
-#            coef exp(coef) se(coef) robust se       z Pr(>|z|)    
-#TreatAS  0.11449   1.12130  0.20824   0.04344  2.636  0.00839 ** 
-#TreatSF  0.80263   2.23139  0.21779   0.12530  6.406  1.5e-10 ***
-#TreatSS -1.15955   0.31363  0.22649   0.13626 -8.510  < 2e-16 ***
+#                           coef     se(coef) se2       Chisq  DF p      
+#TreatAS                     0.1145 0.04344     0.2082   6.95 1  8.4e-03
+#TreatSF                     0.8026 0.12530     0.2178  41.03 1  1.5e-10
+#TreatSS                    -1.1595 0.13626     0.2265  72.41 1  1.7e-17
+#TreatCA                   -21.1851 1.02408  5828.8324 427.95 1  4.5e-95
+#TreatCS                   -21.1851 1.02408  5828.8324 427.95 1  4.5e-95
+#frailty(factor(total_smar                               0.19 0  4.0e-01
+#Likelihood ratio test= 162.2  on 5 df,   p=<2e-16
 
 total_smarc_input$Treat <- relevel(total_smarc_input$Treat, "AS")
-total_cox_smarc_2 <- coxph(Surv(time = total_smarc_input$Day, event = total_smarc_input$Mortality) ~ Treat, cluster=Treat, data=total_smarc_input)
+total_cox_smarc_2 <- coxph(Surv(time = total_smarc_input$Day, event = total_smarc_input$Mortality) ~ Treat+frailty(factor(total_smarc_input$trial)), cluster=Treat, data=total_smarc_input)
 summary(total_cox_smarc_2)
 # TO AS 
-#            coef exp(coef) se(coef) robust se      z Pr(>|z|)    
-#TreatAF -0.11449   0.89182  0.20824   0.04344  -2.636  0.00839 ** 
-#TreatSF  0.68813   1.99000  0.21924   0.13631   5.048 4.46e-07 ***
-#TreatSS -1.27404   0.27970  0.22478   0.10673 -11.937  < 2e-16 ***
+#                           coef     se(coef) se2       Chisq  DF p      
+#TreatAF                    -0.1145 0.04344     0.2082   6.95 1  8.4e-03
+#TreatSF                     0.6881 0.13631     0.2192  25.48 1  4.5e-07
+#TreatSS                    -1.2740 0.10673     0.2248 142.50 1  7.5e-33
+#TreatCA                   -21.2996 1.01748  5828.8324 438.22 1  2.6e-97
+#TreatCS                   -21.2996 1.01748  5828.8324 438.22 1  2.6e-97
+#frailty(factor(total_smar                               0.19 0  4.0e-01
+#Likelihood ratio test= 162.2  on 5 df,   p=<2e-16
 
 total_smarc_input$Treat <- relevel(total_smarc_input$Treat, "SF")
-total_cox_smarc_3 <- coxph(Surv(time = total_smarc_input$Day, event = total_smarc_input$Mortality) ~ Treat, cluster=Treat, data=total_smarc_input)
+total_cox_smarc_3 <- coxph(Surv(time = total_smarc_input$Day, event = total_smarc_input$Mortality) ~ Treat+frailty(factor(total_smarc_input$trial)), cluster=Treat, data=total_smarc_input)
 summary(total_cox_smarc_3)
 # TO SF
-#             coef exp(coef) se(coef) robust se       z Pr(>|z|)    
-#TreatAS -0.6881    0.5025   0.2192    0.1363 -5.048 4.46e-07 ***
-#TreatAF -0.8026    0.4482   0.2178    0.1253 -6.406 1.50e-10 ***
-#TreatSS -1.9622    0.1406   0.2509    0.2419 -8.112 4.96e-16 ***
+#                          coef     se(coef) se2       Chisq  DF p      
+#TreatAS                    -0.6881 0.1363      0.2192  25.48 1  4.5e-07
+#TreatAF                    -0.8026 0.1253      0.2178  41.03 1  1.5e-10
+#TreatSS                    -1.9622 0.2419      0.2509  65.81 1  5.0e-16
+#TreatCA                   -21.9878 1.0494   5828.8324 438.99 1  1.8e-97
+#TreatCS                   -21.9878 1.0494   5828.8324 438.99 1  1.8e-97
+#frailty(factor(total_smar                               0.19 0  4.0e-01
+#Likelihood ratio test= 162.2  on 4 df,   p=<2e-16
+               
+total_smarc_input$Treat <- relevel(total_smarc_input$Treat, "SS")
+total_cox_smarc_4 <- coxph(Surv(time = total_smarc_input$Day, event = total_smarc_input$Mortality) ~ Treat+frailty(factor(total_smarc_input$trial)), cluster=Treat, data=total_smarc_input)
+summary(total_cox_smarc_4)
+#TO SS
+#                          coef    se(coef) se2       Chisq  DF p      
+#TreatSF                     1.962 0.2419      0.2509  65.81 1  5.0e-16
+#TreatAS                     1.274 0.1067      0.2248 142.50 1  7.5e-33
+#TreatAF                     1.160 0.1363      0.2265  72.41 1  1.7e-17
+#TreatCA                   -20.026 1.0036   5828.8324 398.13 1  1.4e-88
+#TreatCS                   -20.026 1.0036   5828.8324 398.13 1  1.4e-88
+#frailty(factor(total_smar                              0.19 0  4.0e-01
+#Likelihood ratio test= 162.2  on 3 df,   p=<2e-16
 
+               
 ### Relevel back to AF
 total_smarc_input$Treat <- relevel(total_smarc_input$Treat, "AF")
+
+#bonferroni p-adj value is 4*p-value
+#AF to AS is 0.0336
+#AF to SF is 6e-10
+#AF to SS is 6.8e-17
+#AS to SF is 1.8e-06
+#AS to SS is 3e-32
+#SF to SS is 2e-15
 ```
 
 
