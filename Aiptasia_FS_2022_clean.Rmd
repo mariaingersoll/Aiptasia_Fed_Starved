@@ -1078,7 +1078,7 @@ candidates_all05=list("Apo"=apo_DEGs05, "Sym"=sym_DEGs05)
 #head(candidates_all)
 prettyvenn05=venn.diagram(
   x = candidates_all05,
-  category.names=c("Apo (4858)", "Sym (1724)"),
+  category.names=c("Apo (4860)", "Sym (1716)"),
   col=c("purple3","purple3"),
   lwd=c(3,3),
   filename=NULL,
